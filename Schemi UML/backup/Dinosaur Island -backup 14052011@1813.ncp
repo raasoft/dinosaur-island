@@ -1,0 +1,1452 @@
+<Project>
+  <Name>Dinosaur Island</Name>
+  <ProjectItem type="NClass.DiagramEditor.ClassDiagram.Diagram" assembly="NClass.DiagramEditor, Version=2.3.1512.0, Culture=neutral, PublicKeyToken=null">
+    <Name>Gameplay</Name>
+    <Language>Java</Language>
+    <Entities>
+      <Entity type="Class">
+        <Name>Dinosaur</Name>
+        <Access>Public</Access>
+        <Location left="682" top="1245" />
+        <Size width="169" height="349" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">protected int age</Member>
+        <Member type="Field">protected int ageMax</Member>
+        <Member type="Field">protected int energy</Member>
+        <Member type="Field">private DinosaurID id</Member>
+        <Member type="Field">protected int size</Member>
+        <Member type="Method">public abstract int getStrength()</Member>
+        <Member type="Method">public int getEnergy()</Member>
+        <Member type="Method">public int getAge()</Member>
+        <Member type="Method">public int getSize()</Member>
+        <Member type="Method">public void setEnergy()</Member>
+        <Member type="Method">public void setAge()</Member>
+        <Member type="Method">public void setSize()</Member>
+        <Member type="Method">public int getEnergyMax()</Member>
+        <Member type="Method">public abstract int getMovementEnergy()</Member>
+        <Member type="Method">public abstract int getGrowthEnergy()</Member>
+        <Member type="Method">public void getMaxStep()</Member>
+        <Modifier>Abstract</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>The age of a Dinosaur (expressed in no. of turns)</Text>
+        <Location left="422" top="1198" />
+        <Size width="165" height="58" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>The size of a Dinosaur (from 1 to 5)</Text>
+        <Location left="393" top="1279" />
+        <Size width="143" height="58" />
+      </Entity>
+      <Entity type="Class">
+        <Name>Carnivorous</Name>
+        <Access>Public</Access>
+        <Location left="547" top="1624" />
+        <Size width="169" height="145" />
+        <Collapsed>False</Collapsed>
+        <Member type="Constructor">public Carnivorous()</Member>
+        <Member type="Method">public int getStrength()</Member>
+        <Member type="Method">public int getMovementEnergy()</Member>
+        <Member type="Method">public int getGrowthEnergy()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>Herbivore</Name>
+        <Access>Public</Access>
+        <Location left="809" top="1624" />
+        <Size width="179" height="145" />
+        <Collapsed>False</Collapsed>
+        <Member type="Constructor">public Herbivore()</Member>
+        <Member type="Method">public int getStrength()</Member>
+        <Member type="Method">public int getMovementEnergy()</Member>
+        <Member type="Method">public int getGrowthEnergy()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>Carnivorous Strength = 2 * energy * size</Text>
+        <Location left="231" top="1574" />
+        <Size width="145" height="59" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Herbivore Strength = 
+energy * size</Text>
+        <Location left="1009" top="1787" />
+        <Size width="139" height="58" />
+      </Entity>
+      <Entity type="Class">
+        <Name>Cell</Name>
+        <Access>Public</Access>
+        <Location left="1864" top="1323" />
+        <Size width="257" height="230" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">protected bool walkable = true</Member>
+        <Member type="Field">protected Dinosaur dinosaur = Null</Member>
+        <Member type="Field">protected Food food = Null</Member>
+        <Member type="Method">public void setWalkable(bool theValue)</Member>
+        <Member type="Method">public bool isWalkable(bool theValue)</Member>
+        <Member type="Method">public void setDinosaur(Dinosaur theDinosaur)</Member>
+        <Member type="Method">public Dinosaur getDinosaur()</Member>
+        <Member type="Method">public Food getFood()</Member>
+        <Member type="Method">public void setFood(Food theFood)</Member>
+        <Modifier>Abstract</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>TerrainCell</Name>
+        <Access>Public</Access>
+        <Location left="1596" top="1668" />
+        <Size width="173" height="128" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">protected bool isWalkable = true</Member>
+        <Member type="Field">protected Dinosaur dinosaur = Null</Member>
+        <Member type="Field">protected Food food = Null</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>VegetationCell</Name>
+        <Access>Public</Access>
+        <Location left="1798" top="1668" />
+        <Size width="173" height="128" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">protected bool isWalkable = true</Member>
+        <Member type="Field">protected Dinosaur dinosaur = Null</Member>
+        <Member type="Field">protected Food food = Vegetation</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>CarrionCell</Name>
+        <Access>Public</Access>
+        <Location left="2011" top="1668" />
+        <Size width="173" height="128" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">protected bool isWalkable = true</Member>
+        <Member type="Field">protected Dinosaur dinosaur = Null</Member>
+        <Member type="Field">protected Food food = Carrion</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>WaterCell</Name>
+        <Access>Public</Access>
+        <Location left="2232" top="1668" />
+        <Size width="173" height="128" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">protected bool isWalkable = false</Member>
+        <Member type="Field">protected Dinosaur dinosaur = Null</Member>
+        <Member type="Field">protected Food food = Null</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>Food</Name>
+        <Access>Public</Access>
+        <Location left="2863" top="1347" />
+        <Size width="246" height="196" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">protected int energy</Member>
+        <Member type="Field">protected int energyMax</Member>
+        <Member type="Method">public int setEnergy()</Member>
+        <Member type="Method">public abstract void updateTurnEnergy()</Member>
+        <Member type="Method">public int getEnergy()</Member>
+        <Member type="Method">public void setEnergyMax(int theEnergyMax)</Member>
+        <Member type="Method">public void getEnergyMax()</Member>
+        <Modifier>Abstract</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>Carrion</Name>
+        <Access>Public</Access>
+        <Location left="2764" top="1633" />
+        <Size width="163" height="128" />
+        <Collapsed>False</Collapsed>
+        <Member type="Constructor">public Carrion()</Member>
+        <Member type="Method">public void updateTurnEnergy()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>Vegetation</Name>
+        <Access>Public</Access>
+        <Location left="3042" top="1633" />
+        <Size width="163" height="128" />
+        <Collapsed>False</Collapsed>
+        <Member type="Constructor">public Vegetation()</Member>
+        <Member type="Method">public void updateTurnEnergy()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>The maximum amount of energy that a type of food can supply is set during the constructor call.</Text>
+        <Location left="3153" top="1386" />
+        <Size width="160" height="88" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Constructor set energyMax randomly between 150 and 350 (250 ± 40%)</Text>
+        <Location left="2484" top="1557" />
+        <Size width="212" height="72" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Constructor set energyMax randomly between 350 and 650 (500 ± 30%)</Text>
+        <Location left="3279" top="1605" />
+        <Size width="236" height="52" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Private vs Protected members?
+
+Dinosaurs must have info about their position?
+
+Must dinosaurs have a unique ID or it is good enough using its reference as unique ID?</Text>
+        <Location left="947" top="1115" />
+        <Size width="246" height="166" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Constructor set ageMax randomly between 24 and 36 (30 ± 20%)</Text>
+        <Location left="318" top="1472" />
+        <Size width="148" height="68" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Constructor set ageMax randomly between 24 and 36 (30 ± 20%)</Text>
+        <Location left="1095" top="1600" />
+        <Size width="156" height="68" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Return 1000 * size</Text>
+        <Location left="503" top="1364" />
+        <Size width="124" height="50" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Movement Energy = 10 * 2^size</Text>
+        <Location left="906" top="1506" />
+        <Size width="195" height="50" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Growth Energy = energyMax / 2</Text>
+        <Location left="481" top="1456" />
+        <Size width="118" height="59" />
+      </Entity>
+      <Entity type="Class">
+        <Name>Game</Name>
+        <Access>Public</Access>
+        <Location left="721" top="2437" />
+        <Size width="259" height="400" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private Game uniqueInstance = Null</Member>
+        <Member type="Field">private int currentTurn = 0</Member>
+        <Member type="Field">private Player[] currentPlayers = Null</Member>
+        <Member type="Field">private int playerMax = 8</Member>
+        <Member type="Constructor">private Game()</Member>
+        <Member type="Method">public static Game getInstance()</Member>
+        <Member type="Method">public void setPlayerMax(int thePlayerNumber)</Member>
+        <Member type="Method">public int getPlayerMax()</Member>
+        <Member type="Method">public int getCurrentTurn()</Member>
+        <Member type="Method">public Player[] getCurrentPlayers()</Member>
+        <Member type="Method">public void confirmTurn(Player thePlayer)</Member>
+        <Member type="Method">public void passTurn(Player thePlayer)</Member>
+        <Member type="Method">public bool nextTurn()</Member>
+        <Member type="Method">public bool endGame()</Member>
+        <Member type="Method">public void moveDinosaur(Player thePlayer, Dinosaur theDinosaur, Cell theCell)</Member>
+        <Member type="Method">public void growDinosaur(Player thePlayer, Dinosaur theDinosaur)</Member>
+        <Member type="Method">public void layDinosaurEgg(Player thePlayer, Dinosaur theDinosaur)</Member>
+        <Member type="Method">public bool resumeGame()</Member>
+        <Member type="Method">public bool saveGame()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>The current number of players is a value between 0 and 8</Text>
+        <Location left="419" top="2515" />
+        <Size width="160" height="74" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>The current turn is a value between 0 and 120</Text>
+        <Location left="441" top="2437" />
+        <Size width="160" height="63" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>At the beginning of every turn:
+energy = energy - energyMax / 10</Text>
+        <Location left="2484" top="1752" />
+        <Size width="212" height="61" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>At the beginning of every turn 
+energy = energy + energyMax / 10</Text>
+        <Location left="3279" top="1750" />
+        <Size width="236" height="55" />
+      </Entity>
+      <Entity type="Class">
+        <Name>Map</Name>
+        <Access>Public</Access>
+        <Location left="1812" top="923" />
+        <Size width="369" height="264" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private Cell[] grid</Member>
+        <Member type="Field">private Vector2D dimension</Member>
+        <Member type="Field">private Map uniqueInstance = Null</Member>
+        <Member type="Constructor">public Map()</Member>
+        <Member type="Method">public static Map getInstance()</Member>
+        <Member type="Method">public void placeCell()</Member>
+        <Member type="Method">private Cell getCellXY(int x, int y)</Member>
+        <Member type="Method">public void placeDinosaur(Dinosaur theDinosaur, int theX, int theY)</Member>
+        <Member type="Method">public void removeDinosaur()</Member>
+        <Member type="Method">public Vector2D getDimension()</Member>
+        <Member type="Method">public void setDimension(Vector2D theVector)</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>The constructor initialize the map adding the cells</Text>
+        <Location left="1489" top="1021" />
+        <Size width="162" height="67" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>AXXO TO BE ADDED:
+
+Dinosaur Actions (movement, growth, egg deposition)
+Dinosaur feeding
+
+Dinosaur View
+
+Movement behaviour
+
+Fight</Text>
+        <Location left="408" top="2137" />
+        <Size width="160" height="231" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Get the cell at x,y position.</Text>
+        <Location left="1501" top="1138" />
+        <Size width="160" height="50" />
+      </Entity>
+      <Entity type="Class">
+        <Name>Vector2D</Name>
+        <Access>Public</Access>
+        <Location left="2348" top="901" />
+        <Size width="162" height="230" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private double x = 0</Member>
+        <Member type="Field">private double y = 0</Member>
+        <Member type="Constructor">public Vector2D()</Member>
+        <Member type="Constructor">public Vector2D(double x, double y)</Member>
+        <Member type="Constructor">public Vector2D(Vector2D theVector)</Member>
+        <Member type="Method">public double getX()</Member>
+        <Member type="Method">public double getY()</Member>
+        <Member type="Method">public void setX()</Member>
+        <Member type="Method">public void setY()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>I created Vector2D in order to use a single variable called dimension within the Map class (maybe in the future the size of the map could be parameterized!).
+I don't know yet if java has such a class, so I created it.</Text>
+        <Location left="2587" top="764" />
+        <Size width="196" height="154" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>dimension contains the width and the height of the map (default: 40x40)</Text>
+        <Location left="2321" top="708" />
+        <Size width="226" height="62" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>The grid is a bidimensional arrayList of Cell.</Text>
+        <Location left="1489" top="894" />
+        <Size width="178" height="62" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>WE MUST TALK ABOUT HOW TO IMPLEMENT SINGLETONS! Enum vs Class?</Text>
+        <Location left="740" top="2285" />
+        <Size width="207" height="74" />
+      </Entity>
+      <Entity type="Class">
+        <Name>AXXODinosaurController</Name>
+        <Access>Public</Access>
+        <Location left="482" top="2847" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Member type="Constructor">public AXXODinosaurController()</Member>
+        <Member type="Method">public void Grow()</Member>
+        <Member type="Method">public void Egg()</Member>
+        <Member type="Method">public void Move()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>AXXO How many dinosaur controllers?
+
+- only one 
+- one for every current player
+- one for every dinosaur</Text>
+        <Location left="278" top="2692" />
+        <Size width="200" height="131" />
+      </Entity>
+      <Entity type="Class">
+        <Name>AXXOFight</Name>
+        <Access>Public</Access>
+        <Location left="667" top="1896" />
+        <Size width="163" height="196" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private Dinosaur winner</Member>
+        <Member type="Field">private Dinosaur loser</Member>
+        <Member type="Constructor">public AXXOFight()</Member>
+        <Member type="Method">public DInosaur getWinner()</Member>
+        <Member type="Method">public Dinosaur getLoser()</Member>
+        <Member type="Method">public void setWinner()</Member>
+        <Member type="Method">public void setLoser()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>AXXODinosaurView</Name>
+        <Access>Public</Access>
+        <Location left="1466" top="2826" />
+        <Size width="162" height="154" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private Cell[] view</Member>
+        <Member type="Constructor">public AXXODinosaurView()</Member>
+        <Member type="Method">public Cell[] getView()</Member>
+        <Member type="Method">public void setView()</Member>
+        <Modifier>Abstract</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>AXXO A view for every dinosaur, I guess?</Text>
+        <Location left="1199" top="2786" />
+        <Size width="160" height="75" />
+      </Entity>
+      <Entity type="Class">
+        <Name>Species</Name>
+        <Access>Public</Access>
+        <Location left="616" top="778" />
+        <Size width="281" height="332" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private String name</Member>
+        <Member type="Field">private final int familySizeMax = 5</Member>
+        <Member type="Field">private ArrayList&lt;Dinosaur&gt; family</Member>
+        <Member type="Field">private int turnMax = 120</Member>
+        <Member type="Field">private int currentTurn = 0</Member>
+        <Member type="Method">public int getCurrentTurn()</Member>
+        <Member type="Method">public void incrementTurn()</Member>
+        <Member type="Method">public void setTurnMax(int theValue)</Member>
+        <Member type="Method">public int getTurnMax()</Member>
+        <Member type="Method">public String getName()</Member>
+        <Member type="Method">public void setName(String theName)</Member>
+        <Member type="Method">public int getSize()</Member>
+        <Member type="Method">public abstract void addDinosaur()</Member>
+        <Member type="Method">public void removeDinosaur(Dinosaur theDinosaur)</Member>
+        <Member type="Method">public int computeScore()</Member>
+        <Modifier>Abstract</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>SpeciesHerbivore</Name>
+        <Access>Public</Access>
+        <Location left="855" top="593" />
+        <Size width="163" height="94" />
+        <Collapsed>False</Collapsed>
+        <Member type="Method">public void addDinosaur()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>SpeciesCarnivorous</Name>
+        <Access>Public</Access>
+        <Location left="491" top="593" />
+        <Size width="163" height="94" />
+        <Collapsed>False</Collapsed>
+        <Member type="Method">public void addDinosaur()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>Each Species child will add only carnivorous or herbivore dinosaurs</Text>
+        <Location left="656" top="521" />
+        <Size width="191" height="71" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Each species must have a name as indicated in the last part of the design document.</Text>
+        <Location left="310" top="700" />
+        <Size width="183" height="68" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Theorycally the maximum number of turns per species is set to 120. But who knows if in the future different species will live more or less than others? :D</Text>
+        <Location left="84" top="794" />
+        <Size width="306" height="80" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>This method is abstract because each species has to add its own type of dinosaur.</Text>
+        <Location left="295" top="1090" />
+        <Size width="220" height="74" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>We must think deeper about leaving the "currentTurn" variable in the species class as specified in the design doc. or move it to the Player class.</Text>
+        <Location left="127" top="898" />
+        <Size width="220" height="100" />
+      </Entity>
+      <Entity type="Class">
+        <Name>Player</Name>
+        <Access>Public</Access>
+        <Location left="1249" top="70" />
+        <Size width="384" height="298" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private String name</Member>
+        <Member type="Field">private Species currentSpecies</Member>
+        <Member type="Field">private String password</Member>
+        <Member type="Field">private PlayerStatus status</Member>
+        <Member type="Method">public void setName(String theName)</Member>
+        <Member type="Method">public PlayerStatus getStatus()</Member>
+        <Member type="Method">public void setStatus()</Member>
+        <Member type="Method">public void setPassword(String thePassword)</Member>
+        <Member type="Method">public String getName()</Member>
+        <Member type="Method">public String getPassword()</Member>
+        <Member type="Method">public void deleteCurrentSpecies()</Member>
+        <Member type="Method">public Species createCurrentSpecies(SpeciesFactory theSpeciesFactory)</Member>
+        <Member type="Method">public Species getCurrentSpecies()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>For the moment, password is only a String. Later we'll use encrypted attributes for security reasons.</Text>
+        <Location left="973" top="10" />
+        <Size width="193" height="84" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>AXXO This should be "updateView" since it changes once the dinosaur move and/or increase his size</Text>
+        <Location left="1699" top="2843" />
+        <Size width="160" height="85" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>int score = 0;
+for (Dinosaur dino : family)
+{
+score = score + dino.getSize() + 1;
+}
+return score;</Text>
+        <Location left="994" top="938" />
+        <Size width="217" height="121" />
+      </Entity>
+      <Entity type="Class">
+        <Name>SpeciesFactory</Name>
+        <Access>Public</Access>
+        <Location left="639" top="131" />
+        <Size width="238" height="128" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private SpeciesFactory uniqueInstance = Null</Member>
+        <Member type="Method">public abstract Species createSpecies()</Member>
+        <Member type="Method">public static SpeciesFactory getInstance()</Member>
+        <Modifier>Abstract</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>SpeciesCarnivorousFactory</Name>
+        <Access>Public</Access>
+        <Location left="491" top="311" />
+        <Size width="168" height="94" />
+        <Collapsed>False</Collapsed>
+        <Member type="Method">public Species createSpecies()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>SpeciesHerbivoreFactory</Name>
+        <Access>Public</Access>
+        <Location left="855" top="311" />
+        <Size width="165" height="94" />
+        <Collapsed>False</Collapsed>
+        <Member type="Method">public Species createSpecies()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>Each concrete factory will create only carnivorous or herbivore dinosaurs species</Text>
+        <Location left="667" top="394" />
+        <Size width="180" height="75" />
+      </Entity>
+      <Entity type="Enum">
+        <Name>PlayerStatus</Name>
+        <Access>Public</Access>
+        <Location left="1660" top="363" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Value>OFFLINE</Value>
+        <Value>LOGGED</Value>
+        <Value>PLAYING</Value>
+      </Entity>
+      <Entity type="Class">
+        <Name>Token</Name>
+        <Access>Public</Access>
+        <Location left="1967" top="99" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private String tokenID</Member>
+        <Member type="Method">public String getTokenID()</Member>
+        <Member type="Method">public void SetTokenID()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>TO BE CHECKED
+FLYWEIGHT ??</Text>
+        <Location left="1738" top="17" />
+        <Size width="160" height="75" />
+      </Entity>
+      <Entity type="Class">
+        <Name>DinosaurID</Name>
+        <Access>Public</Access>
+        <Location left="1290" top="1173" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private int ID</Member>
+        <Member type="Method">public int getID()</Member>
+        <Member type="Method">public void setID()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>There will be a maximum of 40 dinosaur ID's</Text>
+        <Location left="1245" top="1046" />
+        <Size width="160" height="75" />
+      </Entity>
+    </Entities>
+    <Relationships>
+      <Relationship type="Comment" first="1" second="0">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>657</X>
+          <Y>1306</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="2" second="0">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>657</X>
+          <Y>1340</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Generalization" first="3" second="0">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Generalization" first="4" second="0">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Comment" first="6" second="4">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>1020</X>
+          <Y>1719</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="5" second="3">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>522</X>
+          <Y>1717</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Generalization" first="8" second="7">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Generalization" first="9" second="7">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>1856</X>
+          <Y>1643</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Generalization" first="10" second="7">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>2124</X>
+          <Y>1643</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Generalization" first="11" second="7">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Generalization" first="13" second="12">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Generalization" first="14" second="12">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Comment" first="15" second="12">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>3136</X>
+          <Y>1425</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="16" second="13">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>2738</X>
+          <Y>1710</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="17" second="14">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>3251</X>
+          <Y>1712</Y>
+        </BendPoint>
+        <BendPoint relativeToStartShape="False">
+          <X>3231</X>
+          <Y>1712</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="19" second="3">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>407</X>
+          <Y>1567</Y>
+        </BendPoint>
+        <BendPoint relativeToStartShape="False">
+          <X>522</X>
+          <Y>1701</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="20" second="4">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>1015</X>
+          <Y>1702</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="21" second="0">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>657</X>
+          <Y>1508</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="22" second="0">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>876</X>
+          <Y>1528</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="23" second="0">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>657</X>
+          <Y>1545</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="25" second="24">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>604</X>
+          <Y>2556</Y>
+        </BendPoint>
+        <BendPoint relativeToStartShape="False">
+          <X>696</X>
+          <Y>2548</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="26" second="24">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>626</X>
+          <Y>2471</Y>
+        </BendPoint>
+        <BendPoint relativeToStartShape="False">
+          <X>696</X>
+          <Y>2515</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="27" second="13">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>2739</X>
+          <Y>1729</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="28" second="14">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>3230</X>
+          <Y>1728</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="30" second="29">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>1787</X>
+          <Y>1054</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="32" second="29">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>1785</X>
+          <Y>1101</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="34" second="33">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Comment" first="35" second="29">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>2211</X>
+          <Y>1003</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="36" second="29">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>1787</X>
+          <Y>983</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="37" second="24">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>846</X>
+          <Y>2412</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="18" second="0">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>882</X>
+          <Y>1347</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="39" second="38">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>339</X>
+          <Y>2862</Y>
+        </BendPoint>
+        <BendPoint relativeToStartShape="False">
+          <X>457</X>
+          <Y>2923</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="42" second="41">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>1441</X>
+          <Y>2920</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Generalization" first="44" second="43">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Generalization" first="45" second="43">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Association" first="43" second="0">
+        <Label>is composed by</Label>
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Composition</AssociationType>
+        <StartMultiplicity>1</StartMultiplicity>
+        <EndMultiplicity>0..*</EndMultiplicity>
+      </Relationship>
+      <Relationship type="Comment" first="46" second="45">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+      </Relationship>
+      <Relationship type="Comment" first="46" second="44">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+      </Relationship>
+      <Relationship type="Comment" first="47" second="43">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>591</X>
+          <Y>841</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Association" first="29" second="7">
+        <Label>is made by</Label>
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>1986</X>
+          <Y>1215</Y>
+        </BendPoint>
+        <BendPoint relativeToStartShape="False">
+          <X>1986</X>
+          <Y>1298</Y>
+        </BendPoint>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Aggregation</AssociationType>
+        <StartMultiplicity>1..*</StartMultiplicity>
+        <EndMultiplicity>1</EndMultiplicity>
+      </Relationship>
+      <Relationship type="Comment" first="48" second="43">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>591</X>
+          <Y>876</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="49" second="43">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>589</X>
+          <Y>992</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="50" second="43">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>591</X>
+          <Y>893</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="52" second="51">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>1224</X>
+          <Y>150</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="53" second="41">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>1653</X>
+          <Y>2955</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Association" first="0" second="40">
+        <Label>fight</Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>623</X>
+          <Y>1575</Y>
+        </BendPoint>
+        <BendPoint relativeToStartShape="False">
+          <X>440</X>
+          <Y>1924</Y>
+        </BendPoint>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Composition</AssociationType>
+        <StartMultiplicity>2</StartMultiplicity>
+        <EndMultiplicity>0..*</EndMultiplicity>
+      </Relationship>
+      <Relationship type="Comment" first="54" second="43">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>928</X>
+          <Y>1077</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Association" first="0" second="7">
+        <Label>is contained in a</Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+        <StartMultiplicity>0..1</StartMultiplicity>
+        <EndMultiplicity>1</EndMultiplicity>
+      </Relationship>
+      <Relationship type="Association" first="12" second="7">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+        <EndRole>is contained in</EndRole>
+        <StartMultiplicity>0..*</StartMultiplicity>
+        <EndMultiplicity>1</EndMultiplicity>
+      </Relationship>
+      <Relationship type="Generalization" first="56" second="55">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Generalization" first="57" second="55">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Dependency" first="56" second="45">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Dependency" first="57" second="44">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Comment" first="58" second="56">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+      </Relationship>
+      <Relationship type="Comment" first="58" second="57">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+      </Relationship>
+      <Relationship type="Association" first="51" second="43">
+        <Label>owns</Label>
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>958</X>
+          <Y>892</Y>
+        </BendPoint>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+        <StartRole>owner</StartRole>
+        <EndRole>owned</EndRole>
+        <StartMultiplicity>1</StartMultiplicity>
+        <EndMultiplicity>0..1</EndMultiplicity>
+      </Relationship>
+      <Relationship type="Association" first="51" second="55">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+        <StartMultiplicity>0..*</StartMultiplicity>
+        <EndMultiplicity>1</EndMultiplicity>
+      </Relationship>
+      <Relationship type="Association" first="29" second="33">
+        <Label>owns</Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Bidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+        <StartMultiplicity>1</StartMultiplicity>
+        <EndMultiplicity>1</EndMultiplicity>
+      </Relationship>
+      <Relationship type="Association" first="51" second="59">
+        <Label>
+        </Label>
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>1588</X>
+          <Y>393</Y>
+        </BendPoint>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+      </Relationship>
+      <Relationship type="Association" first="51" second="60">
+        <Label>owns</Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+        <StartMultiplicity>0..1</StartMultiplicity>
+        <EndMultiplicity>0..1</EndMultiplicity>
+      </Relationship>
+      <Relationship type="Comment" first="61" second="60">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>1942</X>
+          <Y>123</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="63" second="62">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Association" first="0" second="62">
+        <Label>has got</Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>876</X>
+          <Y>1379</Y>
+        </BendPoint>
+        <BendPoint relativeToStartShape="False">
+          <X>1254</X>
+          <Y>1379</Y>
+        </BendPoint>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+        <StartMultiplicity>0..1</StartMultiplicity>
+        <EndMultiplicity>0..1</EndMultiplicity>
+      </Relationship>
+    </Relationships>
+  </ProjectItem>
+  <ProjectItem type="NClass.DiagramEditor.ClassDiagram.Diagram" assembly="NClass.DiagramEditor, Version=2.3.1512.0, Culture=neutral, PublicKeyToken=null">
+    <Name>Communication</Name>
+    <Language>Java</Language>
+    <Entities>
+      <Entity type="Class">
+        <Name>Server</Name>
+        <Access>Public</Access>
+        <Location left="413" top="688" />
+        <Size width="337" height="383" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private Server uniqueInstance = Null</Member>
+        <Member type="Field">private int port</Member>
+        <Member type="Field">private int connections</Member>
+        <Member type="Field">private final int connectionsMax</Member>
+        <Member type="Field">private ArrayList&lt;Communication&gt; activeCommunications</Member>
+        <Member type="Field">private ArrayList&lt;ConnectionManager&gt; connectionManagerList</Member>
+        <Member type="Field">private ArrayList&lt;Player&gt; players</Member>
+        <Member type="Constructor">public Server()</Member>
+        <Member type="Method">public Server getInstance()</Member>
+        <Member type="Method">public void start()</Member>
+        <Member type="Method">public void stop()</Member>
+        <Member type="Method">public int getConnections()</Member>
+        <Member type="Method">public int getConnectionsMax()</Member>
+        <Member type="Method">public void RAAXXOgetActiveCommunications()</Member>
+        <Member type="Method">public void setConnections(int theConnections)</Member>
+        <Member type="Method">public void setPort(int thePort)</Member>
+        <Member type="Method">public void addPlayer(String theName, String thePassword)</Member>
+        <Member type="Method">public Player getPlayer()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>Communication</Name>
+        <Access>Public</Access>
+        <Location left="2094" top="721" />
+        <Size width="237" height="179" />
+        <Collapsed>False</Collapsed>
+        <Member type="Method">public abstract void run()</Member>
+        <Member type="Method">public abstract void createUser()</Member>
+        <Member type="Method">protected abstract void sendCreateUserNack()</Member>
+        <Member type="Method">protected abstract void sendCreateUserAck()</Member>
+        <Modifier>Abstract</Modifier>
+      </Entity>
+      <Entity type="Interface">
+        <Name>Runnable</Name>
+        <Access>Public</Access>
+        <Location left="2130" top="554" />
+        <Size width="172" height="94" />
+        <Collapsed>False</Collapsed>
+        <Member type="Method">public void run()</Member>
+      </Entity>
+      <Entity type="Class">
+        <Name>RMICommunication</Name>
+        <Access>Public</Access>
+        <Location left="2586" top="514" />
+        <Size width="235" height="145" />
+        <Collapsed>False</Collapsed>
+        <Member type="Method">public void run()</Member>
+        <Member type="Method">public void createUser()</Member>
+        <Member type="Method">protected void sendCreateUserNack()</Member>
+        <Member type="Method">protected void sendCreateUserAck()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>ConnectionManager</Name>
+        <Access>Public</Access>
+        <Location left="876" top="80" />
+        <Size width="309" height="315" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">protected Server uniqueInstance = Null</Member>
+        <Member type="Field">protected int port</Member>
+        <Member type="Field">protected int connections</Member>
+        <Member type="Field">protected ArrayList&lt;Communication&gt; activeCommunications</Member>
+        <Member type="Method">public Server getInstance()</Member>
+        <Member type="Method">public abstract void start()</Member>
+        <Member type="Method">public abstract void stop()</Member>
+        <Member type="Method">protected abstract Communication newCommunication()</Member>
+        <Member type="Method">public int getConnections()</Member>
+        <Member type="Method">public int getConnectionsMax()</Member>
+        <Member type="Method">public int getPort()</Member>
+        <Member type="Method">public abstract void RAAXXOgetActiveCommunications()</Member>
+        <Member type="Method">public void setPort(int thePort)</Member>
+        <Member type="Method">protected void setConnections()</Member>
+        <Modifier>Abstract</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>SocketManager</Name>
+        <Access>Public</Access>
+        <Location left="651" top="481" />
+        <Size width="261" height="145" />
+        <Collapsed>False</Collapsed>
+        <Member type="Method">public void start()</Member>
+        <Member type="Method">public void stop()</Member>
+        <Member type="Method">protected Communication newCommunication()</Member>
+        <Member type="Method">public void RAAXXOgetActiveCommunications()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>RMIManager</Name>
+        <Access>Public</Access>
+        <Location left="1148" top="481" />
+        <Size width="261" height="145" />
+        <Collapsed>False</Collapsed>
+        <Member type="Method">public void start()</Member>
+        <Member type="Method">public void stop()</Member>
+        <Member type="Method">protected Communication newCommunication()</Member>
+        <Member type="Method">public void RAAXXOgetActiveCommunications()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>Populate the connectionManagerList with the connection managers that the server wants to use.</Text>
+        <Location left="892" top="771" />
+        <Size width="252" height="73" />
+      </Entity>
+      <Entity type="Comment">
+        <Text>Deploy the server starting the connection managers</Text>
+        <Location left="144" top="821" />
+        <Size width="166" height="60" />
+      </Entity>
+      <Entity type="Class">
+        <Name>GameLogicModel</Name>
+        <Access>Public</Access>
+        <Location left="1989" top="1039" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Member type="Method">public void createUser()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>SocketCommunication</Name>
+        <Access>Public</Access>
+        <Location left="2586" top="939" />
+        <Size width="237" height="230" />
+        <Collapsed>False</Collapsed>
+        <Member type="Field">private InputStreamReader inputStream</Member>
+        <Member type="Field">private PrintStream outputStream</Member>
+        <Member type="Method">public String readFromSocket()</Member>
+        <Member type="Method">public void run()</Member>
+        <Member type="Method">public void writeToSocket(String theString)</Member>
+        <Member type="Method">public void createUser()</Member>
+        <Member type="Method">protected void sendCreateUserNack()</Member>
+        <Member type="Method">protected void sendCreateUserAck()</Member>
+        <Member type="Method">public void parseCommand()</Member>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Comment">
+        <Text>The maximum number of communications is equal to the maximum number of objects that an arraylist can manage</Text>
+        <Location left="144" top="598" />
+        <Size width="161" height="96" />
+      </Entity>
+    </Entities>
+    <Relationships>
+      <Relationship type="Realization" first="1" second="2">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Generalization" first="5" second="4">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Generalization" first="6" second="4">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Comment" first="7" second="0">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>775</X>
+          <Y>862</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Comment" first="8" second="0">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="False">
+          <X>388</X>
+          <Y>900</Y>
+        </BendPoint>
+      </Relationship>
+      <Relationship type="Generalization" first="10" second="1">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+      </Relationship>
+      <Relationship type="Generalization" first="3" second="1">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+      </Relationship>
+      <Relationship type="Dependency" first="1" second="9">
+        <StartOrientation>Vertical</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Comment" first="11" second="0">
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <BendPoint relativeToStartShape="True">
+          <X>330</X>
+          <Y>636</Y>
+        </BendPoint>
+        <BendPoint relativeToStartShape="False">
+          <X>388</X>
+          <Y>821</Y>
+        </BendPoint>
+      </Relationship>
+    </Relationships>
+  </ProjectItem>
+  <ProjectItem type="NClass.DiagramEditor.ClassDiagram.Diagram" assembly="NClass.DiagramEditor, Version=2.3.1512.0, Culture=neutral, PublicKeyToken=null">
+    <Name>Marca'sComm</Name>
+    <Language>Java</Language>
+    <Entities>
+      <Entity type="Class">
+        <Name>Server</Name>
+        <Access>Public</Access>
+        <Location left="250" top="253" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>RMI</Name>
+        <Access>Public</Access>
+        <Location left="716" top="63" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>Socket</Name>
+        <Access>Public</Access>
+        <Location left="716" top="434" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>RMIThread</Name>
+        <Access>Public</Access>
+        <Location left="1115" top="63" />
+        <Size width="163" height="77" />
+        <Collapsed>False</Collapsed>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>SocketThread</Name>
+        <Access>Public</Access>
+        <Location left="1357" top="409" />
+        <Size width="163" height="77" />
+        <Collapsed>False</Collapsed>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>RMIThread</Name>
+        <Access>Public</Access>
+        <Location left="1233" top="224" />
+        <Size width="163" height="77" />
+        <Collapsed>False</Collapsed>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>SocketThread</Name>
+        <Access>Public</Access>
+        <Location left="1630" top="544" />
+        <Size width="163" height="77" />
+        <Collapsed>False</Collapsed>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>GameLogic</Name>
+        <Access>Public</Access>
+        <Location left="944" top="917" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>NewClass</Name>
+        <Access>Public</Access>
+        <Location left="287" top="67" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Modifier>None</Modifier>
+      </Entity>
+      <Entity type="Class">
+        <Name>NewClass</Name>
+        <Access>Public</Access>
+        <Location left="41" top="87" />
+        <Size width="162" height="216" />
+        <Collapsed>False</Collapsed>
+        <Modifier>None</Modifier>
+      </Entity>
+    </Entities>
+    <Relationships>
+      <Relationship type="Association" first="1" second="3">
+        <Label>
+        </Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+      </Relationship>
+      <Relationship type="Association" first="2" second="4">
+        <Label>
+        </Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+      </Relationship>
+      <Relationship type="Association" first="0" second="1">
+        <Label>
+        </Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+      </Relationship>
+      <Relationship type="Association" first="0" second="2">
+        <Label>
+        </Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+      </Relationship>
+      <Relationship type="Association" first="1" second="5">
+        <Label>
+        </Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+      </Relationship>
+      <Relationship type="Association" first="2" second="6">
+        <Label>
+        </Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Horizontal</EndOrientation>
+        <Direction>Unidirectional</Direction>
+        <AssociationType>Association</AssociationType>
+      </Relationship>
+      <Relationship type="Dependency" first="7" second="3">
+        <Label>
+        </Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Dependency" first="7" second="5">
+        <Label>
+        </Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Dependency" first="7" second="4">
+        <Label>
+        </Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+      <Relationship type="Dependency" first="7" second="6">
+        <Label>
+        </Label>
+        <StartOrientation>Horizontal</StartOrientation>
+        <EndOrientation>Vertical</EndOrientation>
+      </Relationship>
+    </Relationships>
+  </ProjectItem>
+</Project>

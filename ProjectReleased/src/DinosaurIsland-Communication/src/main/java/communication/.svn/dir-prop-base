@@ -1,0 +1,14 @@
+K 10
+svn:ignore
+V 155
+ConnectionManager.java
+GameLogicModel.java
+PlayerManager.java
+RAATokenManager.java
+RMIManager.java
+Runnable.java
+Server.java
+SocketManager.java
+Token.java
+
+END

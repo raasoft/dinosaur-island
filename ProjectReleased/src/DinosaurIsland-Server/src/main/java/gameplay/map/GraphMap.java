@@ -1,0 +1,175 @@
+/**
+ * Copyright (c) 2011 RAAXXO
+ * 
+ * This file is part of Dinosaur Island.
+ * 
+ */
+package gameplay.map;
+
+import java.util.List;
+
+import gameplay.Dinosaur;
+
+import org.jgrapht.alg.DijkstraShortestPath;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.SimpleGraph;
+
+import util.Position;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * The GraphMap class instantiate a simple undirected graph which contains all
+ * the cells reachable by a dinosaur. <br>
+ * It uses JGraphT library, the resulting graph is a {@link SimpleGraph} and the
+ * shortest path between two cells is calculated using
+ * {@link DijkstraShortestPath} methods. This class includes:
+ * <ul>
+ * <li>graph The graph containing the cells in the square surrounding a dinosaur
+ * </ul>
+ * </p>
+ * 
+ * @author AxxO
+ * @version 1.0
+ * 
+ */
+public class GraphMap {
+
+	private SimpleGraph<Cell, DefaultEdge> graph;
+
+	/**
+	 * @param theDinosaur
+	 *            the dinosaur on which we will build the graph of cells
+	 *            surrounding it
+	 * 
+	 */
+	public GraphMap(Dinosaur theDinosaur) {
+
+		if (theDinosaur == null) {
+			throw new IllegalArgumentException("The dinosaur cannot be null");
+		}
+
+		graph = new SimpleGraph<Cell, DefaultEdge>(DefaultEdge.class);
+
+		int dinoX = theDinosaur.getPosition().getIntX();
+		int dinoY = theDinosaur.getPosition().getIntY();
+
+		/**
+		 * For every cell in the maximum radius we add the walkable ones to the
+		 * graph
+		 */
+		for (int i = -theDinosaur.getMaxStep(); i <= theDinosaur.getMaxStep(); i++) {
+			for (int j = -theDinosaur.getMaxStep(); j <= theDinosaur
+					.getMaxStep(); j++) {
+				Position position = new Position(dinoX + i, dinoY + j);
+				if (Map.getInstance().validatePosition(position)) {
+					if (Map.getInstance().getCell(position).isWalkable()) {
+						graph.addVertex(Map.getInstance().getCell(position));
+					}
+				}
+			}
+		}
+
+		/**
+		 * For every cell(vertex) contained in the graph we check whether it is
+		 * possible to create an edge with the adjacent ones
+		 */
+		for (Cell c : graph.vertexSet()) {
+
+			// east cell
+			Position eastCellPosition = new Position(
+					c.getPosition().getIntX() + 1, c.getPosition().getIntY());
+			if (Map.getInstance().validatePosition(eastCellPosition)
+					&& graph.containsVertex(Map.getInstance().getCell(
+							eastCellPosition))) {
+				graph.addEdge(c, Map.getInstance().getCell(eastCellPosition));
+			}
+			// south east cell
+			Position southEastCellPosition = new Position(c.getPosition()
+					.getIntX() + 1, c.getPosition().getIntY() + 1);
+			if (Map.getInstance().validatePosition(southEastCellPosition)
+					&& graph.containsVertex(Map.getInstance().getCell(
+							southEastCellPosition))) {
+				graph.addEdge(c,
+						Map.getInstance().getCell(southEastCellPosition));
+			}
+			// south cell
+			Position southCellPosition = new Position(
+					c.getPosition().getIntX(), c.getPosition().getIntY() + 1);
+			if (Map.getInstance().validatePosition(southCellPosition)
+					&& graph.containsVertex(Map.getInstance().getCell(
+							southCellPosition))) {
+				graph.addEdge(c, Map.getInstance().getCell(southCellPosition));
+			}
+			// south west cell
+			Position southWestCellPosition = new Position(c.getPosition()
+					.getIntX() - 1, c.getPosition().getIntY() + 1);
+			if (Map.getInstance().validatePosition(southWestCellPosition)
+					&& graph.containsVertex(Map.getInstance().getCell(
+							southWestCellPosition))) {
+				graph.addEdge(c,
+						Map.getInstance().getCell(southWestCellPosition));
+			}
+			// west cell
+			Position westCellPosition = new Position(
+					c.getPosition().getIntX() - 1, c.getPosition().getIntY());
+			if (Map.getInstance().validatePosition(westCellPosition)
+					&& graph.containsVertex(Map.getInstance().getCell(
+							westCellPosition))) {
+				graph.addEdge(c, Map.getInstance().getCell(westCellPosition));
+			}
+			// north west cell
+			Position northWestCellPosition = new Position(c.getPosition()
+					.getIntX() - 1, c.getPosition().getIntY() - 1);
+			if (Map.getInstance().validatePosition(northWestCellPosition)
+					&& graph.containsVertex(Map.getInstance().getCell(
+							northWestCellPosition))) {
+				graph.addEdge(c,
+						Map.getInstance().getCell(northWestCellPosition));
+			}
+			// north cell
+			Position northCellPosition = new Position(
+					c.getPosition().getIntX(), c.getPosition().getIntY() - 1);
+			if (Map.getInstance().validatePosition(northCellPosition)
+					&& graph.containsVertex(Map.getInstance().getCell(
+							northCellPosition))) {
+				graph.addEdge(c, Map.getInstance().getCell(northCellPosition));
+			}
+			// north east cell
+			Position northEastCellPosition = new Position(c.getPosition()
+					.getIntX() + 1, c.getPosition().getIntY() - 1);
+			if (Map.getInstance().validatePosition(northEastCellPosition)
+					&& graph.containsVertex(Map.getInstance().getCell(
+							northEastCellPosition))) {
+				graph.addEdge(c,
+						Map.getInstance().getCell(northEastCellPosition));
+			}
+		}
+	}
+
+	/**
+	 * @return the graph generated by {@link GraphMap}
+	 */
+	public SimpleGraph<Cell, DefaultEdge> getGraph() {
+		return graph;
+	}
+
+	/**
+	 * The method calculateShortestPath returns the shortest path between two
+	 * cells. This implementation uses Dijsktra's algorithm in order to
+	 * calculate the result.
+	 * 
+	 * @param startCell
+	 * @param endCell
+	 * @return the list of edges composing the shortest path from startCell to
+	 *         endCell
+	 * @return null if the shortest path does not exist
+	 * 
+	 * @see DijkstraShortestPath
+	 * 
+	 */
+	public List<DefaultEdge> calculateShortestPath(Cell startCell, Cell endCell) {
+
+		return DijkstraShortestPath.findPathBetween(graph, startCell, endCell);
+	}
+}

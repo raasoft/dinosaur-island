@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/299/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/src/main/java/gameplay
+END
+SpeciesFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 146
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/283/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/src/main/java/gameplay/SpeciesFactory.java
+END
+Dinosaur.java
+K 25
+svn:wc:ra_dav:version-url
+V 140
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/282/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/src/main/java/gameplay/Dinosaur.java
+END
+SpeciesHerbivoreFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 155
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/300/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/src/main/java/gameplay/SpeciesHerbivoreFactory.java
+END
+Game.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/300/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/src/main/java/gameplay/Game.java
+END
+Species.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/300/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/src/main/java/gameplay/Species.java
+END
+DinosaurIDManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 149
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/138/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/src/main/java/gameplay/DinosaurIDManager.java
+END
+Player.java
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/300/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/src/main/java/gameplay/Player.java
+END
+SpeciesCarnivorousFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 157
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/300/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/src/main/java/gameplay/SpeciesCarnivorousFactory.java
+END

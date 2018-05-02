@@ -1,0 +1,670 @@
+package gameplay;
+
+import java.io.Serializable;
+import java.util.*;
+
+import util.Position;
+import exceptions.*;
+import gameplay.map.Food;
+import gameplay.map.Map;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * In the game, the class Dinosaur stores information about each dinosaur of the certain player.
+ * A Dinosaur can be a Carnivorous or a Herbivore, so Dinosaur is the parent class for the
+ * {@link Carnivorous} and {@link Herbivore} classes.
+ * </p>
+ * <b>Responsibilities</b><br>
+ * <p>
+ * The class Dinosaur is responsible to store information about the dinosaur
+ * owned by the player.
+ * A dinosaur stores information about:
+ * <ul>
+ * <li>Belonging species
+ * <li>Its age
+ * <li>Its maximum age it can live
+ * <li>Its energy
+ * <li>Its size
+ * <li>Its position in the map
+ * <li>Its ability to move or lay an egg
+ * <li>Its ability to grow
+ * </ul>
+ * A dinosaur can be created only inside a {@link Species}, so its constructor is protected. 
+ * To create a dinosaur you have to call the {@code addDinosaur(Species theSpecies)} method of the {@link Species} class.
+ * </p>
+ * <b>Collaborators</b><br>
+ * <p>
+  * A dinosaur is a class that only stores information: it cannot decide
+ * where to move or decide to move at all. All the decision are made
+ * by the {@link Map} class.
+ * </p>
+ *
+ * @author	RAA
+ * @version 1.6
+ * @since	May 21, 2011@10:13:41 AM
+ */
+public abstract class Dinosaur implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private int age;
+	private int ageMax;
+	private int energy;
+	private Position position;
+	private boolean ableToAct;
+	private boolean ableToGrow;
+	private int size;
+	private int sizeMax;
+	private Species species;
+
+	/**
+	 * @param theSpecies is the species of the dinosaur. The constructor is protected
+	 * because a dinosaur can only be created inside a species, so it can be created only by 
+	 * a Species class.
+	 */
+	protected Dinosaur(Species theSpecies) {
+		setSpecies(theSpecies);
+
+		/*
+		 * When a dinosaur is created, its age (expressed in turn's number
+		 * played) is zero
+		 */
+		setAge(0);
+
+		/*
+		 * The maximum age that a dinosaur can have is computed randomly at its
+		 * creation.
+		 */
+		setAgeMax();
+		
+		/* It sets the maximum size of the dinosaur */
+		setSizeMax();
+
+		/* When a dinosaur is created, it has a starting energy of 750 points */
+		int startEnergy = 750;
+		setEnergy(startEnergy);
+
+		/* When a dinosaur is created, it has a unitary size */
+		setSize(1);
+
+		/*
+		 * When a dinosaur is created, it is not placed in the map, so we'll set
+		 * is position to null.
+		 */
+		setPosition(null);
+		
+		/* When a dinosaur is created, it is able to grow */
+		setAbleToGrow(true);
+		
+		/* When a dinosaur is created it is able to act */
+		setAbleToAct(true);
+		
+	}
+
+	/**
+	 * @return true if the dinosaur is aggressive
+	 * @return false if the dinosaur is not aggressive
+	 */
+	protected abstract boolean isAggressive();
+	
+	public boolean isAbleToAct() {
+		return ableToAct;
+	}
+	
+	public void setAbleToAct(boolean theValue) {
+		ableToAct = theValue;
+	}
+	
+	public boolean isAbleToGrow() {
+		return ableToGrow;
+	}
+	
+	public void setAbleToGrow(boolean theValue) {
+		ableToGrow = theValue;
+	}
+
+	//TODO check if it's correct to place this method here
+	public abstract boolean canEat(Food theFood);
+	
+	/** 
+	 * The method getAge returns the age of the dinosaur, that is the number of turns played.
+	 * A dinosaur can play from 0 to {@link #ageMax} turns.
+	 *
+	 * @return the age of the dinosaur, that is the number of turns played.         
+	 *  
+	 * @since	May 21, 2011@10:49:59 AM
+	 * 
+	 */
+	public int getAge() {
+		return age;
+	}
+	
+	/** 
+	 * The method getAgeMax returns the maximum age a dinosaur can live, expressed in number
+	 * of turns that it can play.<br>
+	 *  After reaching that age, the dinosaur will die.
+	 *
+	 * @return  the maximum age of the dinosaur.
+	 *
+	 * @since	May 21, 2011@10:56:48 AM
+	 * 
+	 */
+	public int getAgeMax() {
+		return ageMax;
+	}
+
+	/** 
+	 * The method getEnergy returns the current energy of the dinosaur, that can be in the range
+	 * from 0 to {@link #ageMax}. <br>
+	 * If the energy will be minor or equal to 0, the dinosaur will die.
+	 * 
+	 * @return the current energy of the dinosaur.          
+
+	 * @since	May 21, 2011@11:21:41 AM
+	 * 
+	 */
+	public int getEnergy() {
+		return energy;
+	}
+
+	/** 
+	 * The method getEnergyMax returns the maximum energy that a dinosaur can store.<br>
+	 * So if a dinosaur will eat something that should increment its energy, if it has already
+	 * reached its maximum energy the energy level will remain the same.
+	 *
+	 * @return the maximum energy value that a dinosaur can store.          
+	 *  
+	 * @since	May 21, 2011@11:29:19 AM
+	 * 
+	 */
+	public int getEnergyMax() {
+		/*
+		 * The maximum energy storable by a dinosaur is obtained by the
+		 * expression "size * multiplier"
+		 */
+		int multiplier = 1000;
+		return size * multiplier;
+	}
+
+	/** 
+	 * The method getGrowthEnergy returns the energy needed to make the dinosaur to grow up 
+	 * and enlarge its size by one unity.
+	 *
+	 * @return the energy needed to make the dinosaur to grow up.
+	 *  
+	 * @since	May 21, 2011@11:31:09 AM
+	 * 
+	 */
+	public int getGrowthEnergy() {
+		/*
+		 * The growth energy of the dinosaur is obtained by the expression
+		 * "energy max / 2
+		 */
+		return getEnergyMax() / 2;
+	}
+	
+	/** 
+	 * The method getEggDepositionEnergy returns the minimum amount of energy necessary to lay an egg
+	 *
+	 * @return 1500          
+	 *  
+	 * @since	Jun 12, 2011@10:55:22 AM
+	 * 
+	 */
+	public int getEggDepositionEnergy() {
+		return 1500;
+	}
+
+	/** 
+	 * The method getId returns the DinosaurID associated to the dinosaur.
+	 * A DinosaurID is associated when a dinosaur starts to play in a game.
+	 * When a dinosaur leaves a game, its DinosaurID will reassigned to another
+	 * dinosaur.
+	 *
+	 * @return the DinosaurID associated to the dinosaur.
+	 * @throws IdentifierNotPresentException - if the dinosaur has no DinosaurID assigned         
+	 *  
+	 * @since	May 21, 2011@11:51:27 AM
+	 * 
+	 */
+	public String getId() throws IdentifierNotPresentException {
+		
+		return (String) DinosaurIDManager.getInstance().getIdentifier(this); 
+
+	}
+
+	/** 
+	 * The method getMaxStep returns the the maximum distance a dinosaur can travel.
+	 * @return the maximum distance a dinosaur can travel.
+	 *  
+	 * @since	May 21, 2011@12:22:33 PM
+	 * 
+	 */
+	public abstract int getMaxStep();
+
+	/** 
+	 * The method getMovementEnergy returns the energy needed to make the dinosaur to move
+	 * around the map.<br>
+	 * The movement energy depends from the maximum distance {@code #getMaxStep())} (that returns a different value whether a dinosaur is a {@link Herbivore} or a {@link Carnivorous}) that a dinosaur can travel,
+	 * and is computed by evaluating the expression: "10 * 2^getMaxStep()".
+	 * 
+	 *
+	 * @return  the energy needed to make the dinosaur to move around the map       
+	 *
+	 * @see #getMaxStep()
+	 *  
+	 * @since	May 21, 2011@12:11:17 PM
+	 * 
+	 */
+	public int getMovementEnergy() {
+		/*
+		 * The movement energy of the dinosaur is obtained by the expression
+		 * "10 * 2^d" where d is the maximum distance that a dinosaur can go
+		 */
+		return 10 * (int) (Math.pow(2, getMaxStep()));
+	}
+
+	/** 
+	 * The method getPosition returns the current position of the dinosaur in
+	 * the map as a {@link Position} object.<br>
+	 * When a dinosaur is created its position is null, that means that is not placed
+	 * on the map.
+	 *
+	 * @return  the current position of a dinosaur in the map         
+	 *
+	 * @since	May 21, 2011@12:27:18 PM
+	 * 
+	 */
+	public Position getPosition() {
+		return position;
+	}
+
+	/** 
+	 * The method getSize returns the size of the dinosaur, a number that is in the range
+	 * from 1 to 5.
+	 *
+	 * @return the size of the dinosaur        
+	 *  
+	 * @since	May 21, 2011@10:49:59 AM
+	 * 
+	 */
+	public int getSize() {
+		return size;
+	}
+	
+	public int getSizeMax() {
+		return sizeMax;
+	}
+
+	/** 
+	 * The method getSpecies returns the parent species of the dinosaur.<br>
+	 * A dinosaur MUST always be assigned to a species. Otherwise a dinosaur would
+	 * not exists.
+	 * 
+	 * @return the species that owns the dinosaur          
+	 *
+	 * @see		Species
+	 *  
+	 * @since	May 21, 2011@12:58:07 PM
+	 * 
+	 */
+	public Species getSpecies() {
+		return species;
+	}
+	
+	/** 
+	 * The method getStrength returns the strength that a dinosaur can exhibit during
+	 * a fight against another dinosaur.
+	 * 
+	 * @return the strength that a dinosaur can exhibit during a fight
+	 *  
+	 * @since	May 21, 2011@12:22:33 PM
+	 * 
+	 */
+	public abstract int getStrength();
+
+	/** 
+	 * The method setAge sets the age of the dinosaur expressed in the number of turns
+	 * player by the dinosaur.<br>
+	 * The age must be a non-negative value.
+	 *
+	 * @param theAge - this is the new age of the dinosaur
+	 * @throws IllegalArgumentException - if {@code theAge} is a negative number.
+	 *  
+	 * @since	May 21, 2011@1:45:51 PM
+	 * 
+	 */
+	public void setAge(int theAge) throws IllegalArgumentException {
+		if (theAge < 0) {
+			throw new IllegalArgumentException("The age of the dinosaur cannot be negative");
+		}
+
+		age = theAge;
+	}
+	
+	/** 
+	 * The method setAgeMax sets the maximum age a dinosaur can live, that is
+	 * the maximum number of turns that a dinosaur can play.<br>
+	 * There are no arguments since the maximum age is computed randomly when a dinosaur
+	 * is created.
+	 *  
+	 * @since	May 21, 2011@1:47:51 PM
+	 * 
+	 */
+	protected void setAgeMax() {	
+		Random rnd = new Random();
+		int minAge = 24;
+		int maxAge = 36;
+		ageMax = rnd.nextInt(maxAge - minAge + 1) + minAge;	
+	}
+
+	/** 
+	 * The method setEnergy sets the energy of the dinosaur.<br>
+	 * The energy must be a non-negative value.
+	 *
+	 * @param theEnergy - this is the new energy of the dinosaur
+	 * @throws IllegalArgumentException - if {@code theEnergy} is a negative number.
+	 *  
+	 * @since	May 21, 2011@1:45:51 PM
+	 * 
+	 */
+	public void setEnergy(int theEnergy) throws IllegalArgumentException {
+		if (theEnergy < 0) {
+			throw new IllegalArgumentException("The energy of the dinosaur cannot be negative");
+		}
+
+		energy = theEnergy;
+		
+		/*
+		 * The dinosaur's energy can't exceed its maximum amount of energy
+		 */
+		if (energy > getEnergyMax()) {
+			energy = getEnergyMax();
+		}
+	}
+
+	/* TODO Write a correct documentation for this method */
+	/* TODO Write a correct implementation for this method */
+	public String setId() throws Exception  {
+		
+		/* TODO Change the Exception type of exception thrown into a correct one */
+		
+		if (getId() == null)
+		{
+			String id = (String) DinosaurIDManager.getInstance().assignIdentifierToObject(this);
+			return id;
+			
+		}
+		else
+		{
+			throw new Exception("The dinosaur has already an ID");
+		}
+
+	}
+
+	/* TODO Write a correct documentation for this method */
+	/* TODO Write a correct implementation for this method */
+	public void setPosition(Position thePosition) {
+			position = thePosition; 
+
+		/*
+		 * TODO setPosition implementation We have to assign a position from the
+		 * Map class. This function is not implemented yet.
+		 */
+		// throw new
+		// UnsupportedOperationException("The method is not implemented yet.");
+	}
+
+	
+	/** 
+	 * The method setSize bla bla bla...
+	 * Bla bla bla... as the indicated {@link NameClass1} bla bla bla...
+	 * It is useful also insert some {@code arg1} references to the args
+	 * while explaining.
+	 *
+	 * @param theSize
+	 * @throws IllegalArgumentException          
+	 *
+	 * @see		NameClass1 (remove the line if there is no need of it)
+	 * @see		NameClass2 (remove the line if there is no need of it)
+	 *  
+	 * @since	May 21, 2011@2:02:19 PM
+	 * 
+	 */
+	/** 
+	 * The method setSize sets the SIZZE of the dinosaur.
+	 * The size must be an integer between 1 and 5 (included).
+	 *
+	 * @param theSize - this is the new size of the dinosaur
+	 * @throws IllegalArgumentException - if {@code theSize} is out of range (theSize < 1 || theSize > 5)
+	 *  
+	 * @since	May 21, 2011@1:45:51 PM
+	 * 
+	 */
+	public void setSize(int theSize) throws IllegalArgumentException {
+
+		if (theSize < 1) {
+			throw new IllegalArgumentException(
+					"The size of the dinosaur cannot be smaller than 1");
+		}
+		if (theSize > sizeMax) {
+			throw new IllegalArgumentException(
+					"The size of the dinosaur cannot be greater than the maximum size");
+		}
+
+		size = theSize;
+	}
+	
+	/**
+	 * The maximum size of a dinosaur is 5
+	 */
+	private void setSizeMax() {
+		sizeMax = 5;
+	}
+
+	
+	/** 
+	 * The method setSpecies sets the species of the dinosaur.
+	 * You MUST assign a dinosaur to a species, since without it the dinosaur
+	 * could not exists.
+	 *
+	 * @param theSpecies
+	 * @throws IllegalArgumentException - if the species provided is null      
+	 *  
+	 * @since	May 21, 2011@2:04:44 PM
+	 * 
+	 */
+	private void setSpecies(Species theSpecies) throws IllegalArgumentException {
+
+		if (theSpecies == null) {
+			throw new IllegalArgumentException("A dinosaur must belong to a species");
+		}
+
+		species = theSpecies;
+	}
+
+}
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * Herbivore is a subclass of the Dinosaur class.<br>
+ * It represents an herbivorous dinosaur.<br>
+ * It implements the abstract methods of the parent class in order to represent
+ * a usable object in the game and nothing more.
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * See {@link Dinosaur}.
+ * </p>
+ *
+ * <b>Collaborators</b><br>
+ * <p>
+ * See {@link Dinosaur}. 
+ * </p>
+ * 
+ * @see Dinosaur
+ * 
+ * @author	RAA
+ * @version 1.6
+ * @since	May 21, 2011@2:05:46 PM
+ *
+ */
+class Herbivore extends Dinosaur {
+
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public Herbivore(Species theSpecies) {
+
+		super(theSpecies);
+
+	}
+
+	/*  {@inheritDoc}
+	 * @see gameplay.Dinosaur#getMaxStep()
+	 * 
+	 */
+	public int getMaxStep() {
+
+		/* The max distance that a herbivorous dinosaur can go is 3 cells */
+		return 2;
+	}
+
+	/* {@inheritDoc}
+	 * @see gameplay.Dinosaur#getStrength()
+	 * 
+	 */
+	public int getStrength() {
+
+		/*
+		 * The strength of the herbivorous dinosaur is obtained by the expression
+		 * "energy * size"
+		 */
+		return getEnergy() * getSize();
+
+	}
+
+	/* {@inheritDoc}
+	 * @see gameplay.Dinosaur#isAggressive()
+	 * 
+	 */
+	@Override
+	protected boolean isAggressive() {
+		
+		/*
+		 * An herbivorous dinosaur is not aggressive
+		 */
+		return false;
+	}
+
+	/* {@inheritDoc}
+	 * @see gameplay.Dinosaur#canEat(gameplay.map.Food)
+	 * 
+	 */
+	@Override
+	public boolean canEat(Food theFood) {
+		if (theFood.isEdibleByHerbivores()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+}
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * Carnivorous is a subclass of the Dinosaur class.<br>
+ * It represents an carnivorous dinosaur.<br>
+ * It implements the abstract methods of the parent class in order to represent
+ * a usable object in the game and nothing more.
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * See {@link Dinosaur}.
+ * </p>
+ *
+ * <b>Collaborators</b><br>
+ * <p>
+ * See {@link Dinosaur}. 
+ * </p>
+ * 
+ * @see Dinosaur
+ * 
+ * @author	RAA
+ * @version 1.6
+ * @since	May 21, 2011@2:05:46 PM
+ *
+ */
+class Carnivorous extends Dinosaur {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public Carnivorous(Species theSpecies) {
+
+		super(theSpecies);
+
+	}
+
+	/* {@inheritDoc}
+	 * @see gameplay.Dinosaur#getMaxStep()
+	 * 
+	 */
+	public int getMaxStep() {
+
+		/* The max distance that a carnivorous dinosaur can go is 3 cells */
+		return 3;
+	}
+
+	/* {@inheritDoc}
+	 * @see gameplay.Dinosaur#getStrength()
+	 * 
+	 */
+	public int getStrength() {
+
+		/*
+		 * The strength of the carnivorous dinosaur is obtained by the expression
+		 * "2 * energy * size"
+		 */
+		return 2 * getEnergy() * getSize();
+
+	}
+
+	/* {@inheritDoc}
+	 * @see gameplay.Dinosaur#isAggressive()
+	 * 
+	 */
+	@Override
+	protected boolean isAggressive() {
+		
+		/*
+		 * A carnivorous dinosaur is aggressive, if it encounters another dinosaur they fight
+		 */
+		return true;
+	}
+
+	/* {@inheritDoc}
+	 * @see gameplay.Dinosaur#canEat(gameplay.map.Food)
+	 * 
+	 */
+	@Override
+	public boolean canEat(Food theFood) {
+		if (theFood.isEdibleByCarnivorous()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+}

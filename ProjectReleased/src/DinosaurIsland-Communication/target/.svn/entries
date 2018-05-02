@@ -1,0 +1,77 @@
+10
+
+dir
+299
+https://pl3.projectlocker.com/raasoftware/RAAXXO_IngSw_Repo/svn/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/target
+https://pl3.projectlocker.com/raasoftware/RAAXXO_IngSw_Repo/svn
+
+
+
+2011-05-17T22:19:24.610943Z
+39
+alessandro.ditta@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+91b33755-c842-496d-a44f-7e18a7c9f8b8
+
+site
+dir
+
+surefire
+dir
+
+DinosaurIsland-Communication-0.0.1-SNAPSHOT.jar
+file
+
+
+
+
+2011-05-17T08:02:22.000000Z
+6a01c065fa20ffd9c2ad0a4d68923883
+2011-05-16T23:32:15.453294Z
+23
+riccardo.ancona@gmail.com
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1857
+
+maven-archiver
+dir
+
+test-classes
+dir
+
+classes
+dir
+

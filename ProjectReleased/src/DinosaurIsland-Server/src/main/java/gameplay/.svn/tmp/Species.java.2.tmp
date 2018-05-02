@@ -1,0 +1,254 @@
+package gameplay;
+
+/* TODO Species is a stub class */
+
+import java.io.Serializable;
+import java.util.*;
+import exceptions.*;
+import gameplay.map.Map;
+
+public abstract class Species implements Serializable
+{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	protected String name;
+	protected final int familySizeMax = 5;
+	protected ArrayList<Dinosaur> family;
+	protected int turnMax = 120;
+	protected int currentTurn = 0;
+	protected Player player;
+	/*We need one bidimensional array in order to take care of the position already
+	 * discovered by the species.
+	 */
+	protected boolean[][] mapAlreadyDiscovered;
+	
+	
+	
+	public Species(Player thePlayer, String theName) 
+	{
+		family = new ArrayList<Dinosaur>();
+		
+		setPlayer(thePlayer);
+		setName(theName);
+		
+		/* The maximum turn a species can live: default value 120 turns */
+		setTurnMax(120);
+		
+		/* It initializes the mapAlreadyDiscovered matrix */
+		mapAlreadyDiscovered = null;	
+	}
+
+	public int getCurrentTurn() 
+	{
+		return currentTurn;
+	}
+
+	public int incrementTurn() throws UnsupportedOperationException
+	{
+		/* Try to increment the current turn: if the species has reached its maximum turn,
+		 * throw an exception.
+		 */
+		if (currentTurn == getTurnMax())
+		{
+			throw new UnsupportedOperationException("The method is not implemented yet.");
+		}
+		
+		currentTurn++;
+		return currentTurn;
+	}
+
+	private void setTurnMax(int theValue) throws IllegalArgumentException
+	{
+		if (theValue <= 0)
+		{
+			throw new IllegalArgumentException("The maximum number of turns that a species can play can't be negative or zero");
+		}
+		turnMax = theValue;
+		
+	}
+
+	public Player getPlayer() 
+	{
+		return player;
+	}
+
+	private void setPlayer(Player thePlayer) throws IllegalArgumentException 
+	{
+		if (thePlayer == null)
+		{
+			throw new IllegalArgumentException("A species must be owned by a player");
+		}
+		player = thePlayer;
+	}
+
+	public int getTurnMax() 
+	{
+		return turnMax;
+	}
+
+	public String getName()  
+	{
+		return name;
+	}
+
+	public void setName(String theName) throws IllegalArgumentException
+	{
+		if (theName == null)
+		{
+			throw new IllegalArgumentException("The name of the species player owner mustn't be null");
+		}
+		
+		if (theName.length() == 0)
+		{
+			throw new IllegalArgumentException("The name of the species player owner mustn't be empty");
+		}
+		
+		name = theName;
+	}
+
+	public int getSize() 
+	{
+		return family.size();
+	}
+
+	public abstract Dinosaur addDinosaur() throws SpeciesIsFullException;
+
+	/**
+	 *
+	 * The method removeDinosaur removes the dinosaur given as parameter from its species
+	 *
+	 * @param theDinosaur the dinosaur to remove          
+	 *
+	 * @since	Jun 9, 2011@11:08:59 PM
+	 *
+	 */
+	void removeDinosaur(Dinosaur theDinosaur) {
+		family.remove(theDinosaur);
+	}
+
+	public void updateFOV(Dinosaur theDinosaur) {
+		
+		/**
+		 * This first block initializes the bidimensional array mapAlreadyDiscovered
+		 */
+	 	if(mapAlreadyDiscovered == null) {
+	 		
+	 		int maxX = (int)Map.getInstance().getDimension().getX();
+	 		int maxY = (int)Map.getInstance().getDimension().getY();
+	 		
+	 		mapAlreadyDiscovered = new boolean[maxX][maxY];
+			for (int i = 0 ; i < maxX; i++) {
+				for (int j = 0; j < maxY; j++) {
+					mapAlreadyDiscovered[i][j] = false;
+				}
+			}
+	 	}
+		
+		int dinoX = theDinosaur.getPosition().getIntX();
+		int dinoY = theDinosaur.getPosition().getIntY();
+		
+		int distance = 2 + (int) Math.floor(theDinosaur.getSize()/2);
+		
+<<<<<<< .mine
+		//FIXME RAA: at first was <= distance, but it gave me array out of bounds (40), so i put < instead
+		for (int i = -distance; i < distance ; i++) {
+			for (int j = -distance; j < distance ; j++) {
+=======
+		//FIXME RAA: at first was <= dinstance, but it gave me array out of bounds (40), so i put < instead
+		for (int i = -dinstance; i <= dinstance ; i++) {
+			for (int j = -dinstance; j <= dinstance ; j++) {
+>>>>>>> .r146
+				if (Map.getInstance().validatePosition(new Position(dinoX + i, dinoY + j))) {
+					mapAlreadyDiscovered[dinoX + i][dinoY + j] = true;
+				}
+			}
+		}
+	}
+	
+	public boolean[][] getFOV() throws NullPointerException {
+		
+		if (mapAlreadyDiscovered == null) {
+			throw new NullPointerException("mapAlreadyDiscovered not initialized yet");
+		}
+		
+		return mapAlreadyDiscovered;
+	}
+	
+	
+	public int computeScore() 
+	{
+		int score = 0;
+		for (Dinosaur dinosaur : family)
+		{
+			score += dinosaur.getSize() + 1;
+		}
+		return score;
+	}
+	
+	public ArrayList<Dinosaur> getDinosaurList() {
+		
+		return new ArrayList<Dinosaur>(this.family);
+		
+	}
+}
+
+
+class SpeciesCarnivorous extends Species 
+{
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public SpeciesCarnivorous(Player thePlayer, String theName) 
+	{
+		super(thePlayer, theName);
+	}
+
+	public Dinosaur addDinosaur() throws SpeciesIsFullException
+	{
+		Dinosaur newborn = new Carnivorous(this);
+		
+		if (getSize() == familySizeMax)
+		{
+			throw new SpeciesIsFullException("Maximum species size reached. Cannot create a new dinosaur.");
+		}
+			
+		family.add(newborn);
+	
+		return newborn;
+	}
+
+}
+
+class SpeciesHerbivore extends Species {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public SpeciesHerbivore(Player thePlayer, String theName) 
+	{
+		super(thePlayer, theName);
+	}
+	
+	public Dinosaur addDinosaur()  throws SpeciesIsFullException
+	{
+		Dinosaur newborn = new Herbivore(this);
+		
+		if (getSize() == familySizeMax)
+		{
+			throw new SpeciesIsFullException("Maximum species size reached. Cannot create a new dinosaur.");
+		}
+			
+		family.add(newborn);
+		
+		return newborn;
+	}
+
+}

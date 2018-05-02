@@ -1,0 +1,435 @@
+/**
+ * Copyright (c) 2011 RAAXXO
+ * 
+ * This file is part of Dinosaur Island.
+ * 
+ */
+package communication;
+
+import java.io.IOException;
+import java.net.ConnectException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.naming.AuthenticationException;
+
+import util.Position;
+import beans.DinosaurStatus;
+import beans.DinosaursList;
+import beans.Highscore;
+import beans.LocalView;
+import beans.MainMap;
+import beans.NewBornID;
+import beans.PlayersList;
+import exceptions.FightLostException;
+import exceptions.FightWonException;
+import exceptions.GameAccessDeniedException;
+import exceptions.GameLeavingDeniedException;
+import exceptions.IdentifierNotPresentException;
+import exceptions.InvalidDestinationException;
+import exceptions.InvalidDinosaurIDException;
+import exceptions.InvalidTokenException;
+import exceptions.MaxInGamePlayersExceededException;
+import exceptions.MaxMovesLimitException;
+import exceptions.MaxSizeReachedException;
+import exceptions.NameAlreadyTakenException;
+import exceptions.NegativeResponseException;
+import exceptions.PlayerNotInGameException;
+import exceptions.SpeciesAlreadyCreatedException;
+import exceptions.SpeciesIsFullException;
+import exceptions.SpeciesNotCreatedException;
+import exceptions.StarvationDeathException;
+import exceptions.TurnNotOwnedByPlayerException;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * Description of the type.
+ * This state information includes:
+ * <ul>
+ * <li>Element 1
+ * <li>Element 2
+ * <li>The current element implementation 
+ *     (see <a href="#setXORMode">setXORMode</a>)
+ * </ul>
+ * </p>
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * Other description in a separate paragraph.
+ * </p>
+ *
+ * <b>Collaborators</b><br>
+ * <p>
+ * Here write about classes 
+ * </p>
+ * 
+ * @author	AXXO
+ * @version 1.0
+ * @since	Jun 20, 2011@11:58:44 AM
+ *
+ */
+public class RMIServerHandler extends ServerHandler {
+	
+	private Logger logger;
+	ServerInterface server;
+	private static RMIServerHandler uniqueInstance = new RMIServerHandler();
+	private static ClientInterface stub;
+	
+	// remote class bind addresses
+	private static String url;
+	
+<<<<<<< .mine
+	public RMIServerHandler() {
+		super();
+		setupLogger();
+	}
+=======
+	public RMIServerHandler() {
+		super();
+		setupLogger();		
+	}
+>>>>>>> .r209
+	
+	static public RMIServerHandler getInstance() {
+		if (uniqueInstance == null) {
+			uniqueInstance = new RMIServerHandler();
+		}
+		
+		return uniqueInstance;
+	}
+	
+	public void connect() {
+		
+		String host = Client.getIpHost();
+		int port = Client.getPort();
+		url = "rmi://" + host + ":" + port + "/server";
+
+		try {
+			if (System.getSecurityManager() == null) 
+				System.setSecurityManager(new SecurityManager());
+
+			Registry registry = LocateRegistry.getRegistry(host, port);
+			logger.info("Registry located corectly on host: " + host + ":" + port);
+			
+			ServerAccept serverStub = (ServerAccept) registry.lookup(url);
+			logger.info("Server stub looked up correctly on " + url);
+			
+			stub = (ClientInterface) UnicastRemoteObject.exportObject(uniqueInstance, 0);
+			logger.info("Client stub exported correctly");
+			
+			server = serverStub.connect(stub);
+			logger.info("RMI connection established");
+		} catch (Exception e) {
+			getLogger().severe("Client exception: " + e.getMessage());
+			e.printStackTrace();
+		}	
+	}
+
+
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#disconnect()
+	 * 
+	 */
+	@Override
+	public void disconnect() {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#login(java.lang.String, java.lang.String)
+	 * 
+	 */
+	@Override
+	public void login(String theUsername, String thePassword)
+			throws RemoteException, ConnectException, TimeoutException,
+			AuthenticationException, IllegalArgumentException {
+		
+		connect();
+		logger.info("Login method invokated");
+		Client.setToken(server.loginPlayer(theUsername, thePassword));
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#register(java.lang.String, java.lang.String)
+	 * 
+	 */
+	@Override
+	public void register(String theUsername, String thePassword)
+			throws RemoteException, ConnectException, TimeoutException,
+			NameAlreadyTakenException {
+		
+		connect();
+		logger.info("Register method invokated");
+		server.createUser(theUsername, thePassword);
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#handleServerDisconnection(java.io.IOException)
+	 * 
+	 */
+	@Override
+	protected void handleServerDisconnection(IOException theException)
+			throws IOException {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#enterGame()
+	 * 
+	 */
+	@Override
+	public void enterGame() throws RemoteException, TimeoutException,
+			MaxInGamePlayersExceededException, SpeciesNotCreatedException,
+			InvalidTokenException, GameAccessDeniedException {
+		
+		logger.info("Enter game method invokated");
+		server.enterGame(Client.getToken());
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#leaveGame()
+	 * 
+	 */
+	@Override
+	public void leaveGame() throws RemoteException, TimeoutException,
+			PlayerNotInGameException, InvalidTokenException,
+			GameLeavingDeniedException {
+		
+		logger.info("Leave game method invokated");
+		server.leaveGame(Client.getToken());
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#logout()
+	 * 
+	 */
+	@Override
+	public void logout() throws RemoteException, TimeoutException,
+			InvalidTokenException {
+		
+		logger.info("Logout method invokated");
+		server.logout(Client.getToken());
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#createSpecies(java.lang.String, java.lang.String)
+	 * 
+	 */
+	@Override
+	public void createSpecies(String theSpeciesName, String theSpeciesType)
+			throws RemoteException, TimeoutException,
+			NameAlreadyTakenException, SpeciesAlreadyCreatedException,
+			InvalidTokenException {
+		
+		logger.info("Create species method invokated");
+		server.createSpecies(Client.getToken(), theSpeciesName, theSpeciesType);
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#moveDinosaur(java.lang.String, util.Position)
+	 * 
+	 */
+	@Override
+	public void moveDinosaur(String theDinosaurID, Position theDestination)
+			throws RemoteException, TimeoutException,
+			IdentifierNotPresentException, StarvationDeathException,
+			InvalidDestinationException, PlayerNotInGameException,
+			TurnNotOwnedByPlayerException, MaxMovesLimitException,
+			FightLostException, FightWonException {
+		
+		logger.info("Move dinosaur method invokated");
+		server.moveDinosaur(Client.getToken(), theDinosaurID, theDestination);
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#growDinosaur(java.lang.String)
+	 * 
+	 */
+	@Override
+	public void growDinosaur(String theDinosaurID) throws RemoteException,
+			TimeoutException, InvalidDinosaurIDException,
+			MaxSizeReachedException, PlayerNotInGameException,
+			TurnNotOwnedByPlayerException, MaxMovesLimitException,
+			InvalidTokenException, StarvationDeathException {
+		
+		logger.info("Grow dinosaur method invokated");
+		server.growDinosaur(Client.getToken(), theDinosaurID);
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#layEgg(java.lang.String)
+	 * 
+	 */
+	@Override
+	public NewBornID layEgg(String theDinosaurID) throws RemoteException,
+			TimeoutException, InvalidDinosaurIDException,
+			SpeciesIsFullException, PlayerNotInGameException,
+			TurnNotOwnedByPlayerException, MaxMovesLimitException,
+			InvalidTokenException {
+		
+		logger.info("Lay egg method invokated");
+		return server.layEgg(Client.getToken(), theDinosaurID);
+	
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#getInGamePlayersList()
+	 * 
+	 */
+	@Override
+	public PlayersList getInGamePlayersList() throws RemoteException,
+			TimeoutException, InvalidTokenException, NegativeResponseException {
+		
+		logger.info("Get player list method invokated");
+		return server.getInGamePlayersList(Client.getToken());
+	
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#getHighscore()
+	 * 
+	 */
+	@Override
+	public Highscore getHighscore() throws RemoteException, TimeoutException,
+			InvalidTokenException, NegativeResponseException {
+		
+		logger.info("Get highscore method invokated");
+		return server.getHighscore(Client.getToken());
+	
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#getMainMap()
+	 * 
+	 */
+	@Override
+	public MainMap getMainMap() throws RemoteException, TimeoutException,
+			InvalidTokenException, PlayerNotInGameException,
+			NegativeResponseException {
+		
+		logger.info("Get main map method invokated");
+		return server.getMainMap(Client.getToken());
+	
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#getLocalView(java.lang.String)
+	 * 
+	 */
+	@Override
+	public LocalView getLocalView(String theDinosaurID) throws RemoteException,
+			TimeoutException, InvalidDinosaurIDException,
+			InvalidTokenException, PlayerNotInGameException,
+			NegativeResponseException {
+		
+		logger.info("Get local view method invokated");
+		return server.getLocalView(Client.getToken(), theDinosaurID);
+		
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#getDinosaurStatus(java.lang.String)
+	 * 
+	 */
+	@Override
+	public DinosaurStatus getDinosaurStatus(String theDinosaurID)
+			throws RemoteException, TimeoutException,
+			InvalidDinosaurIDException, InvalidTokenException,
+			PlayerNotInGameException, NegativeResponseException {
+		
+		logger.info("Get dinosaur status method invokated");
+		return server.getDinosaurStatus(Client.getToken(), theDinosaurID);
+		
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#getDinosaursInGameList()
+	 * 
+	 */
+	@Override
+	public DinosaursList getDinosaursInGameList() throws RemoteException,
+			TimeoutException, InvalidTokenException, NegativeResponseException,
+			PlayerNotInGameException {
+	
+		logger.info("Get dinosaur list method invokated");
+		return server.getInGameDinosaursList(Client.getToken());
+		
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#confirmTurn()
+	 * 
+	 */
+	@Override
+	public void confirmTurn() throws RemoteException, TimeoutException,
+			InvalidTokenException, NegativeResponseException,
+			PlayerNotInGameException {
+		
+		logger.info("Confirm turn method invokated");
+		server.confirmTurn(Client.getToken());
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#passTurn()
+	 * 
+	 */
+	@Override
+	public void passTurn() throws RemoteException, TimeoutException,
+			InvalidTokenException, NegativeResponseException,
+			PlayerNotInGameException {
+		
+		logger.info("Pass turn method invokated");
+		server.passTurn(Client.getToken());
+
+	}
+
+	/* {@inheritDoc}
+	 * @see communication.ServerHandler#callback(java.lang.String)
+	 * 
+	 */
+	@Override
+	public void callback(String theString) throws RemoteException {
+		System.out.println(theString);
+	}
+
+	/* {@inheritDoc}
+	 * @see logging.Loggable#setupLogger()
+	 * 
+	 */
+	@Override
+	public void setupLogger() {
+		
+		logger = Logger.getLogger("client.serverhandler.rmiserverhandler");
+		logger.setParent(Logger.getLogger("client.main"));
+		logger.setLevel(Level.ALL);
+		
+	}
+
+	/* {@inheritDoc}
+	 * @see logging.Loggable#getLogger()
+	 * 
+	 */
+	@Override
+	public Logger getLogger() {
+		return logger;
+	}
+
+}

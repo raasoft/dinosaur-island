@@ -1,0 +1,117 @@
+/**
+ * Copyright (c) 2011 RAAXXO
+ * 
+ * This file is part of Dinosaur Island.
+ * 
+ */
+package gameplay;
+
+import exceptions.MaxSizeReachedException;
+import gameplay.map.Map;
+import junit.framework.Assert;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import util.Position;
+
+import communication.Server;
+
+/**
+ * This class is intended to test the actions made by dinosaurs in game  
+  */
+
+
+public class GameActionsTest extends Assert {
+
+		Game game;
+		Server server;
+		@Before
+		
+		public void setUp() throws Exception {
+			server = Server.getInstance();
+			game = Game.getInstance();
+			Map.getInstance().createRandomMap();	
+		}
+		
+		@Test
+		public void testFOV() throws Exception {
+			final Player thePlayer1 = new Player("ale", "al");
+			thePlayer1.createCurrentSpecies(SpeciesHerbivoreFactory.getInstance(), "HerbivoreSpeciesNo1");
+			Game.getInstance().addPlayer(thePlayer1);
+			Dinosaur dino = thePlayer1.getCurrentSpecies().addDinosaur();
+			DinosaurIDManager.getInstance().assignIdentifierToObject(dino);
+			Position position = new Position(1, 2);
+			dino.setPosition(position);
+			dino.getSpecies().updateFOV(dino);
+			boolean[][] dinoFOV = dino.getSpecies().getFOV();
+			 
+			for (int j = 0; j < dinoFOV[0].length; j++) {
+				for (int i = 0; i < dinoFOV.length; i++) {
+					System.out.print("[" + dinoFOV[i][j] + "]");
+					}
+				System.out.print("\n");
+			}
+			dino.setEnergy(2000);
+			System.out.println("dino health: " + dino.getEnergy());
+			Game.getInstance().moveDinosaur(dino, new Position(1,4));
+			System.out.println("MOVEMENT");
+			for (int j = 0; j < dinoFOV[0].length; j++) {
+				for (int i = 0; i < dinoFOV.length; i++) {
+					System.out.print("[" + dinoFOV[i][j] + "]");
+					}
+				System.out.print("\n");
+			}
+		}
+		
+		@Test (expected=MaxSizeReachedException.class)
+		public void growTest() throws Exception  {
+			final Player thePlayer1 = new Player("ale", "al");
+			thePlayer1.createCurrentSpecies(SpeciesHerbivoreFactory.getInstance(), "HerbivoreSpeciesNo1");
+			Game.getInstance().addPlayer(thePlayer1);
+			Dinosaur dino = thePlayer1.getCurrentSpecies().addDinosaur();
+			Position position = new Position(1, 2);
+			dino.setPosition(position);
+			DinosaurIDManager.getInstance().assignIdentifierToObject(dino);
+			dino.setEnergy(dino.getEnergyMax());
+			Game.getInstance().growDinosaur(dino);
+			dino.setEnergy(dino.getEnergyMax());
+			Game.getInstance().growDinosaur(dino);
+			dino.setEnergy(dino.getEnergyMax());
+			Game.getInstance().growDinosaur(dino);
+			dino.setEnergy(dino.getEnergyMax());
+			Game.getInstance().growDinosaur(dino);
+			dino.setEnergy(dino.getEnergyMax());
+			
+			Game.getInstance().growDinosaur(dino);
+			
+			System.out.println("Dino size: " + dino.getSize());
+		}
+		
+		@Test
+		public void layEggTest() throws Exception {
+			final Player thePlayer1 = new Player("ale", "al");
+			thePlayer1.createCurrentSpecies(SpeciesHerbivoreFactory.getInstance(), "HerbivoreSpeciesNo1");
+			Game.getInstance().addPlayer(thePlayer1);
+			Dinosaur dino = thePlayer1.getCurrentSpecies().addDinosaur();
+			DinosaurIDManager.getInstance().assignIdentifierToObject(dino);
+			dino.setSize(3);
+			dino.setEnergy(2000);
+			System.out.println("dino energy" + dino.getEnergy());
+			dino.setPosition(new Position(1, 2));
+			Game.getInstance().layEgg(dino);
+		}
+		
+		@After
+		public void tearDown() throws Exception {
+		}
+
+		
+	}
+
+	
+
+
+
+	

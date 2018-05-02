@@ -1,0 +1,1096 @@
+package gameplay.map;
+
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.logging.Logger;
+
+import javax.swing.JTextPane;
+
+import logging.HTMLFormatter;
+import logging.Loggable;
+import logging.TextPaneHandler;
+import util.Position;
+import util.StackTraceUtils;
+import util.Vector2D;
+
+import commands.CommandHelper;
+
+import exceptions.AlreadyOccupiedCellException;
+import exceptions.InvalidDestinationException;
+import exceptions.InvalidMapException;
+import exceptions.InvalidPositionException;
+import exceptions.NotFoundException;
+import gameplay.Dinosaur;
+import gameplay.DinosaurIDManager;
+import gameplay.Game;
+import gameplay.Player;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * The Map class is a Singleton, it has information about positions of cells and dinosaurs playing.
+ * <br>It manage and checks all the movements of dinosaurs.
+ * <br>The map can be generated randomly complying with the given specifications.
+ * <br>The data stored by the Map class can be loaded and saved in a file.
+ * <br>The Map class has information about:
+ * <ul>
+ * <li>Its logger
+ * <li>Its creation status
+ * <li>Its unique instance
+ * <li>Cells composing the map
+ * <li>Its dimension
+ * </ul>
+ * </p>
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * The class map is responsible for the creation of the gameplay map and movements management.
+ * <br>It manages all the placements of objects such as dinosaurs, cells and food
+ * </p>
+ *
+ * <b>Collaborators</b><br>
+ * <p>
+ * {@link Vector2D}, {@link Position}, {@link GraphMap}, {@link MapData}, {@link Cell} {@link Food}
+ * </p>
+ * 
+ * @author	AXXO
+ * @version 1.1
+ * @since	May 21, 2011@9:16:58 PM
+ *
+ */
+public class Map implements Loggable {
+
+	private static boolean mapIsGenerated;
+	private static Logger logger;
+	private static Map uniqueInstance = new Map();
+	private Cell[][] grid;
+	private Vector2D dimension;
+	
+	public Map()  {}
+	
+	/**
+	 * @return the grid containing the map cells
+	 */
+	public Cell[][] getGrid() {
+		return grid;
+	}
+
+	/**
+	 * @param theGrid to set
+	 */
+	private void setGrid(Cell[][] theGrid) {
+		grid = theGrid;
+	}
+
+	/**
+	 * @return true if the map has been generated
+	 */
+	public static boolean isMapGenerated() {
+		return mapIsGenerated;
+	}
+
+	/**
+	 * @param theValue the boolean condition to set for mapIsGenerated
+	 */
+	public static void setMapIsGenerated(boolean theValue) {
+		mapIsGenerated = theValue;
+	}
+	
+	/** 
+	 * The method createRandomMap creates a new random map which respects the following parameters:
+	 * <ul>
+	 * <li>Terrain occupies 80% of the entire map, water the remaining 20%
+	 * <li>The map is not partitioned, every terrain cell can be reached from any other terrain cell
+	 * <li>The map is an island so it must be surrounded by water cells
+	 * <li>Water cells inside the map must be in groups of a minimum of 5 and a maximum of 15 cells
+	 * <li>Vegetation cells must occupy 40% of all terrain cells
+	 * <li>The map must contain 20 carrions
+	 * </ul>         
+	 *
+	 * @see		Vector2D
+	 * @see		Position
+	 * @see		Cell
+	 * @see		Food
+	 *  
+	 * @since	Jun 27, 2011@11:53:32 AM
+	 * 
+	 */
+	public void createRandomMap() {
+		
+		Vector2D theDimension = new Vector2D(40,40);
+		setDimension(theDimension);
+		
+		int mapX = (int) (theDimension.getX());
+		int mapY = (int) (theDimension.getY());
+		
+		int cellNumber = mapX * mapY;
+		
+		int vegetationCell = (int) Math.round(cellNumber * 0.4);
+		int terrainCell = (int) Math.round(cellNumber * 0.4);
+		
+		getLogger().finest("Total terrain Cell: "+(vegetationCell+terrainCell));
+		int carrionCell = 20;
+		getLogger().finest("Carrion Cell: "+carrionCell);
+		/* The available water cells are the 20% of the total cells minus the border cells (that 
+		 * must be made of water)
+		 */
+		int waterCell = (int) (Math.round(cellNumber * 0.2)) ; //164
+		getLogger().finest("Water Cell: "+waterCell);
+		/* Each water block is composed by 12 or 5 water cell: 12 * 12 = 144 + 5 * 4  = 20 -> 164 water cell will be created */
+		Vector2D[] waterBlocks = new Vector2D[] { new Vector2D(3,4), new Vector2D(2,6), new Vector2D(4,3), new Vector2D(6,2), new Vector2D(1,5)  };
+		
+		Cell randomMap[][] = new Cell[mapX][mapY]; 
+		
+		Random rnd = new Random();
+		Vector2D waterBlock;
+		int dimX;
+		int dimY;
+		int posX;
+		int posY;
+		int leftBorder = 2;
+		int topBorder = 2;
+		
+		int count = 0;
+
+		getLogger().finest("Water Cell Counted: "+count);
+		
+		/* cover the map with water blocks */
+		int waterBlockType = 0; 
+		int i = 0;
+		for (int a = 0; a < 4; a++) {
+			for (int b = 0; b < 4; b++) {
+				i++;
+				
+				/* Select the appropriate water block */
+				if ( b == 3) {
+					waterBlock = waterBlocks[4];
+					dimX = (int) waterBlock.getX();
+					dimY = (int) waterBlock.getY();
+				}
+				else 
+				{
+					waterBlockType = rnd.nextInt(4); 
+					waterBlock = waterBlocks[waterBlockType];
+					dimX = (int) waterBlock.getX();
+					dimY = (int) waterBlock.getY();
+				}
+				
+				int rndX = rnd.nextInt(3);
+				int rndY = rnd.nextInt(3);
+				
+				for (int xx = 0; xx < dimX; xx++) {
+					for (int yy = 0; yy < dimY; yy++) {
+						posX = leftBorder + a*9 + xx + rndX;
+						posY = topBorder + b*9 + yy + rndY;
+						randomMap[posX][posY] = new WaterCell(new Position(posX, posY));
+						waterCell--;
+					}
+				}
+			}
+		}
+		
+		getLogger().info("Carrion cell number before starting to covering map: "+carrionCell);
+
+		/* Cover the map with terrain surrounded by water */
+		for (int y = 0; y < mapY; y++) {
+			for (int x = 0; x < mapX; x++) {
+				
+				if (randomMap[x][y] != null) {
+					count++;
+					continue;
+				}
+				
+				if (x == 0 || y == 0 || x == mapX-1 || y == mapY-1) {
+					randomMap[x][y] = new WaterCell(new Position(x, y));
+					waterCell--;
+				} else {
+					
+					if (vegetationCell != 0 && terrainCell != 0) {
+						
+						if (rnd.nextBoolean()) {
+							randomMap[x][y] = new TerrainCell(new Position(x, y));
+							terrainCell--;
+						} else  {
+							randomMap[x][y] = new VegetationCell(new Position(x, y));
+							vegetationCell--;
+						}
+						
+					} else if (terrainCell != 0 && vegetationCell == 0 ) {
+						randomMap[x][y] = new TerrainCell(new Position(x, y));
+						terrainCell--;			
+					} else if (terrainCell == 0 && vegetationCell != 0 ) {
+						randomMap[x][y] = new VegetationCell(new Position(x, y));
+						vegetationCell--;
+					}
+				}
+			}
+		}
+		
+		ArrayList<Cell> availableCells = new ArrayList<Cell>();
+		
+		for (int x = 0; x < dimension.getX(); x++) {
+			for (int y = 0; y < dimension.getY(); y++) {
+				
+				if (randomMap[x][y].isWalkable() && randomMap[x][y].getFood() == null) {
+					availableCells.add(randomMap[x][y]);
+				}
+			}	
+		}
+		
+		int randomCellPositionNumber;
+		getLogger().info("Are to ble placed "+ carrionCell +"th carrion");
+		
+		for (int c = carrionCell; c >0 ; c--) {
+			getLogger().info("Starting to place the "+ c +"th carrion");
+			/* Choose randomly one available cell then put the carrion onto it */
+			try {
+				randomCellPositionNumber = rnd.nextInt(availableCells.size());
+				getLogger().info("Selected the"+ randomCellPositionNumber +"th cell available");
+				availableCells.get(randomCellPositionNumber).addFood();
+				availableCells.remove(randomCellPositionNumber);
+				carrionCell--;
+				getLogger().info("Now remain "+carrionCell+" carrion cells to be placed");
+			} catch (Exception e) {
+				getLogger().warning(StackTraceUtils.getThrowMessage(e));
+			}
+		}
+		
+		getLogger().finest("Water Cell Remained: "+waterCell);
+		getLogger().finest("Terrain Cell Remained: " + terrainCell);
+		getLogger().finest("Vegetation Cell Remained: " + vegetationCell);
+		getLogger().finest("Carrion Cell Remained: " + carrionCell);
+	
+		
+		getLogger().finest("Validate current generated map");
+		validateMap(randomMap);
+		getLogger().info("The map has been generated");
+		setGrid(randomMap);
+		setMapIsGenerated(true);
+	}
+	
+	/** 
+	 * The method validateMap checks whether the given grid of cells is valid or not. The validation criteria:
+	 * <ul>
+	 * <li>Terrain occupies 80% of the entire map, water the remaining 20%
+	 * <li>The map is not partitioned, every terrain cell can be reached from any other terrain cell
+	 * <li>The map is an island so it must be surrounded by water cells
+	 * <li>Water cells inside the map must be in groups of a minimum of 5 and a maximum of 15 cells
+	 * <li>Vegetation cells must occupy 40% of all terrain cells
+	 * <li>The map must contain 20 carrions
+	 * </ul>
+	 *
+	 * @param theGrid to be validated
+	 * @throws InvalidMapException if the map given as parameter does not comply with the specifications
+	 * @throws NullPointerException if theGrid is null        
+	 *
+	 * @since	Jun 27, 2011@12:08:21 PM
+	 * 
+	 */
+	private void validateMap(Cell[][] theGrid) throws InvalidMapException, NullPointerException {
+		
+		if (theGrid == null) {
+			 NullPointerException ex = new NullPointerException("The map can't be null");
+			 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+			 throw ex;
+		}
+		
+		 Cell waterCell = new WaterCell(new Position(0, 0));
+		 Cell vegetationCell = new VegetationCell(new Position(0, 0));
+		 
+		 Vector2D dimension = new Vector2D(theGrid.length, theGrid[0].length);
+			 
+		 // Now trying to check the map for building errors
+		 
+		 // It is surrounded by the water?
+		 for (int pos = 0; pos < dimension.getX(); pos++) {
+			 if (theGrid[pos][0].getSymbol().equals(waterCell.getSymbol()) == false || 
+					 theGrid[pos][(int)dimension.getY()-1].getSymbol().equals(waterCell.getSymbol()) == false) {
+				 				 
+				 InvalidMapException ex = new InvalidMapException("The map is not surrounded by the water.");
+				 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+				 throw ex;
+			 }
+		 }
+		 
+		 for (int pos = 0; pos < dimension.getY(); pos++) {
+			 if (theGrid[0][pos].getSymbol().equals(waterCell.getSymbol()) == false || 
+					 theGrid[(int)dimension.getX()-1][pos].getSymbol().equals(waterCell.getSymbol()) == false) {
+				 				 
+				 InvalidMapException ex = new InvalidMapException("The map is not surrounded by the water. Can't load the map");
+				 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+				 throw ex;
+			 }
+		 }
+		 
+		 // Specification parameters tests
+		 int totalCells = (int) (dimension.getX() * dimension.getY());
+		 int terrainCells = 0;
+		 int vegetationCells = 0;
+		 int carrionCells = 0;
+		 int waterCells = 0;
+		 
+		 for (int a = 0; a < dimension.getX(); a++) {
+			 for (int b = 0; b < dimension.getY(); b++) {	
+				 
+				 if (theGrid[a][b].getSymbol().equals(waterCell.getSymbol())) {
+					 waterCells++;
+				 } else if (theGrid[a][b].getSymbol().equals(vegetationCell.getSymbol())) {
+					 vegetationCells++;
+					 terrainCells++;
+				 } else {
+					 terrainCells++;
+					 if (theGrid[a][b].getFood() != null) {
+						 carrionCells++;
+					 }
+				 }
+			 }			 
+		 }
+		 
+		 
+		 boolean testEnabled = true; // This variable is only for testing purposes. In the complete game all tests are mandatory
+		 
+		 if (testEnabled) {
+			 
+			 int waterPercentage = Math.round((float) waterCells / (float) totalCells * 100);
+			 
+			 if (waterPercentage != 20) {
+				 InvalidMapException ex = new InvalidMapException("The water cells doesn't occupy the 20% of the map. The map is not valid");
+				 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+				 throw ex;
+			 }
+			 
+			 int totalTerrainPercentage = Math.round((float) (terrainCells) / (float) totalCells * 100);
+			 
+			 if ( totalTerrainPercentage != 80 ) {
+				 InvalidMapException ex = new InvalidMapException("The terrain and vegetation cells doesn't occupy the 80% of the map. The map is not valid");
+				 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+				 throw ex;
+			 }
+			 
+			 int vegetationPercentage = Math.round((float) vegetationCells / (float) totalCells * 100);
+			 
+			 if (vegetationPercentage != 40) {
+				 InvalidMapException ex = new InvalidMapException("The vegetation cells doesn't occupy the 40% of the map. The map is not valid");
+				 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+				 throw ex;
+			 }
+			 
+			 if (carrionCells != 20) {
+				 InvalidMapException ex = new InvalidMapException("The carrion cells aren't 20. The map is not valid");
+				 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+				 throw ex;
+			 }
+		 }
+		 
+		 
+		 // FIXME Water doesn't partition the island ? 
+		 // FIXME Water groups are minimum of 5 to 15 cells? 
+		
+	}
+	
+	
+	
+	//FIXME This method is candidated to removal. Don' use it!
+	public void loadMapFromFile(String theFilename) throws FileNotFoundException, IOException, InvalidMapException {
+		/* Each map is saved in a text file structured in this way:
+		 * 
+		 * Name of the map
+		 * {Rows,Columns}
+		 * [a|t|v,energy|c,energy][a|t|v,energy|c,energy]...[a|t|v,energy|c,energy]
+		 * ...
+		 * [a|t|v,energy|c,energy][a|t|v,energy|c,energy]...[a|t|v,energy|c,energy]
+		 */
+		
+		
+		 Vector2D dimension;
+		 Cell[][] loadedGrid;
+		 ArrayList<String> mapLines;
+		 
+		 File file = new File(theFilename);
+		 boolean exists = file.exists();
+		 if (!exists) {
+			 throw new FileNotFoundException("Can't found the file: " + file.getAbsolutePath());
+		 } else {
+			 FileInputStream fstream = null;
+			 DataInputStream in = null;
+			 try {
+				
+				 fstream = new FileInputStream(file);
+				 in = new DataInputStream(fstream);
+				 BufferedReader br = new BufferedReader(new InputStreamReader(in));
+				 String strLine;
+				 String commaSeparator = ",";
+				 
+				 /* Read the map name */
+				 strLine = br.readLine(); /* Skip the map name */
+				 if (strLine == null) {
+					 InvalidMapException ex = new InvalidMapException("The map is not valid. Impossible load the map.");
+					 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+					 throw ex;
+				 }
+				 
+				 /* Read the dimension of the map */
+				 strLine = br.readLine(); 
+				 if (strLine == null) {
+					 InvalidMapException ex = new InvalidMapException("The map is not valid. Impossible load the map.");
+					 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+					 throw ex;
+				 }
+				 
+				 try {
+					 dimension = CommandHelper.parseVector(strLine, commaSeparator);
+					 setDimension(dimension);
+					 loadedGrid =  new Cell[(int) dimension.getX()][(int) dimension.getY()] ;
+				 }
+				 catch (IllegalArgumentException e) {
+					 getLogger().warning(StackTraceUtils.getThrowMessage(e));
+					 InvalidMapException ex = new InvalidMapException("The map is not valid. Impossible load the map.");
+					 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+					 throw ex;
+				 }
+				  
+				 /* Preparing to read the map content */
+				 /* Setting up the regexp map table from the dimension parameter just readed from the file */
+				 ArrayList<String> regexpMapLines = new ArrayList<String>();
+				 String row = "";
+				
+				 for (int i = 0; i < dimension.getX(); i++) {
+					 row = row + "\\[(a|t|v,([0-9]+)|c,([0-9]+))\\]";
+				 }
+				 for (int y = 0; y < dimension.getY(); y++) {
+					 regexpMapLines.add(row);
+				 }
+
+				 /* Read the map string from the file */
+				 mapLines = new ArrayList<String>();
+				 strLine = br.readLine();
+				 
+				 String[] rowsLoadedFromFiles = strLine.split(";");
+				 
+				 for (String str : rowsLoadedFromFiles) {
+					 mapLines.add(str);
+				 }
+
+				 try {
+					 CommandHelper.validate(mapLines, regexpMapLines);
+				 }
+				 catch (IllegalArgumentException e) {
+					 getLogger().warning(StackTraceUtils.getThrowMessage(e));
+					 InvalidMapException ex = new InvalidMapException("The map is not valid. Impossible load the map.");
+					 getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+					 throw ex;
+				 }
+				
+			 } catch (IOException e) {
+				 getLogger().warning(StackTraceUtils.getThrowMessage(e));
+				 throw e;
+			 }
+			 finally {
+				 if ( in != null )
+					 in.close();
+			 }
+		 }
+
+		 /* Now parsing the content loaded */
+		 
+		 ArrayList<String> cellStrings = new ArrayList<String>(); 
+		 String[] cellStringsTemporary;
+		 for (String str : mapLines) {
+
+			 str = str.substring(1) + "[";
+			 cellStringsTemporary = str.split("\\]\\[");
+			 
+			 for (String cellStr : cellStringsTemporary)
+				 cellStrings.add(cellStr);
+
+		 }
+		 
+		 mapLines = null; // Freeing memory
+		 
+		 Cell cell;
+		 int cellNumber = 0;
+		 int x,y;
+		 int commaPosition = 0;
+		 
+		 for (String str : cellStrings) {
+			 
+			 commaPosition = str.indexOf(",");
+		 
+			 x = (int) (cellNumber % dimension.getX());
+			 y = (cellNumber / (int) dimension.getX());
+			 
+			 if (commaPosition == -1) {
+				 cell = CellFactory.getInstance().createCell(str, new Position(x, y));
+			 } else {
+				 cell = CellFactory.getInstance().createCell(str.substring(0, commaPosition), new Position(x, y));
+				
+				 int energy = (int)Float.parseFloat(str.substring(commaPosition+1, str.length()));
+				 
+				 if (energy != 0) //if the energy is 0 then the default energy value is setted for the food
+					 cell.getFood().setEnergy(energy); //otherwise set the value founded in the map
+			 }
+			 
+			 loadedGrid[x][y] = cell;
+			 cellNumber++;
+		 }
+		 
+		 // Now trying to check the map for building InvalidMapExceptions
+
+		 validateMap(loadedGrid);
+		 setGrid(loadedGrid);
+		 setMapIsGenerated(true);
+		 
+	}
+
+	/** 
+	 * The method getInstance returns the unique instance of the Map class
+	 *
+	 * @return uniqueInstance          
+	 *  
+	 * @since	May 21, 2011@10:10:43 PM
+	 * 
+	 */
+	public static Map getInstance() {
+		return uniqueInstance;
+	}
+
+	/** 
+	 * The method getCell returns the cell located at the given position
+	 *
+	 * @param thePosition
+	 * @return grid[thePosition.getIntX()][thePosition.getIntY()], null
+	 * @throws InvalidPositionException          
+	 * 
+	 * @since	May 21, 2011@10:16:23 PM
+	 * 
+	 */
+	public Cell getCell(Position thePosition) throws InvalidPositionException {
+		
+		if (validatePosition(thePosition)) { 
+			return grid[thePosition.getIntX()][thePosition.getIntY()];
+		}
+		
+		else {
+			throw new InvalidPositionException("Invalid Position");
+		}
+	}
+	
+	/** 
+	 * The method getDimension returns the dimension of the map
+	 * 
+	 * @return dimension          
+	 *  
+	 * @since	May 21, 2011@10:31:23 PM
+	 * 
+	 */
+	public Vector2D getDimension() {
+		return dimension;
+	}
+	
+	/** 
+	 * The method getDinosaur returns a Dinosaur which is contained in the Cell located at the specified Position
+	 *
+	 * @param thePosition
+	 * @throws InvalidPositionException
+	 * @return positionMap.get(thePosition)     
+	 *
+	 * @since	May 21, 2011@10:22:26 PM
+	 * 
+	 */
+	public Dinosaur getDinosaur(Position thePosition) throws InvalidPositionException {
+		
+		if (!validatePosition(thePosition)) {
+			throw new InvalidPositionException("Invalid Position");
+		}
+		
+		if (getCell(thePosition).getDinosaur() != null) {
+			return getCell(thePosition).getDinosaur();
+		}
+			
+		/*
+		 * It returns null if there is no dinosaur in the specified position
+		 */
+		else {
+			return null;
+		}
+	}
+	
+	/** 
+	 * The method setDimension sets the dimension of the map
+	 *
+	 * @param theVector
+	 * 
+	 * @see Vector2D
+	 *  
+	 * @since	May 21, 2011@10:42:37 PM
+	 * 
+	 */
+	public void setDimension(Vector2D theVector) {
+		dimension = theVector;
+	}
+
+	/** 
+	 * The method placeDinosaur places the specified dinosaur in the specified position of the map
+	 *
+	 * @param theDinosaur
+	 * @param thePosition
+	 * @throws InvalidPositionException
+	 * @throws NotFoundException          
+	 *
+	 * @since	May 21, 2011@10:45:41 PM
+	 * 
+	 */
+	
+	//IMPORTANT: this method is public because the Game class can call it when an old player enters the game
+	//and the Game class has to dispose his/hers old dinosaur into the map
+	public void placeDinosaur(Dinosaur theDinosaur, Position thePosition) throws
+		InvalidPositionException, NotFoundException {
+		
+		if (!validatePosition(thePosition)) {
+			throw new InvalidPositionException("Invalid position");
+		}
+		
+		if (theDinosaur == null) {
+			throw new IllegalArgumentException("Dinosaur cannot be null");
+		}
+		
+		//Remove the dinosaur from the current dinosaur cell if it is in a valid cell
+		if (validatePosition(theDinosaur.getPosition())) {
+			getCell(theDinosaur.getPosition()).setDinosaur(null);
+		}
+	
+		//then assign a new position to the dinosaur
+		theDinosaur.setPosition(thePosition);
+		//and assign the new cell the dinosaur
+		getCell(thePosition).setDinosaur(theDinosaur);
+		getLogger().info("The dinosaur with ID " + theDinosaur.getId() +
+				" has been placed in cell " + thePosition);
+		theDinosaur.getSpecies().updateFOV(theDinosaur);
+		
+	}
+
+
+	public void placeCarrionRandomly() {
+		
+		ArrayList<Cell> availableCells = new ArrayList<Cell>();
+		
+		for (int x = 0; x < dimension.getX(); x++) {
+			for (int y = 0; y < dimension.getY(); y++) {
+				
+				Position pos = new Position(x,y);
+				if (getCell(pos).isWalkable() && getCell(pos).getFood() == null) {
+					availableCells.add(getCell(pos));
+				}
+			}	
+		}
+		
+		/* Choose randomly one available cell then put the carrion onto it */
+		Random rnd = new Random();
+		try {
+			availableCells.get(rnd.nextInt(availableCells.size())).addFood();
+		} catch (Exception e) {
+			getLogger().warning(StackTraceUtils.getThrowMessage(e));
+		}
+	
+	}
+	
+
+	public void placeDinosaurRandomly(Dinosaur theDinosaur) {
+		
+		ArrayList<Cell> availableCells = new ArrayList<Cell>();
+		
+		for (int x = 0; x < dimension.getX(); x++) {
+			for (int y = 0; y < dimension.getY(); y++) {
+				
+				Position pos = new Position(x,y);
+				if (isCellFree(pos)) {
+					availableCells.add(getCell(pos));
+				}
+			}	
+		}
+		
+		/* Choose randomly one available cell then put the dinosaur onto it */
+		Random rnd = new Random();
+		placeDinosaur(theDinosaur, availableCells.get(rnd.nextInt(availableCells.size())).getPosition());
+		
+		
+	}
+	
+	// This method place a dinosaur randomly in a cell that is at most three cell far away from theParentDinosaur
+	public void placeDinosaurRandomly(Dinosaur theNewBorn, Dinosaur theParentDinosaur) {
+		
+		ArrayList<Cell> availableCells = new ArrayList<Cell>();
+		/* FIXME Why maxCellDist is 3?? In the specifications it says the new born is placed in a random cell near the parent!! */
+		/* I propose a little change in the code
+		 * instead of searching for a maximum distance of 3, we begin with a max distance of 1
+		 * and we increment it if we do not find a free cell near the parent dino at the previous distance
+		 * in this way the program makes the smallest number of cycles,
+		 * in fact it adds all the free cells present in the smallest radius, then it chooses a random one among them
+		 */
+		int maxCellDist = 1;
+		
+		Position parentDinosaurPosition = theParentDinosaur.getPosition();
+		
+		int newbornX = 0;
+		int newbornY = 0;
+		boolean availableCellFound = false;
+		while (!availableCellFound) {
+			for (int x = -maxCellDist; x <= maxCellDist; x++) {
+				for (int y = -maxCellDist; y <= maxCellDist; y++) {
+									
+					newbornX = Math.abs(parentDinosaurPosition.getIntX() + x); 
+					newbornY = Math.abs(parentDinosaurPosition.getIntY() + y);
+					
+					Position pos = new Position(newbornX,newbornY);
+					if (isCellFree(pos)) {
+						availableCells.add(getCell(pos));
+						availableCellFound = true;
+					}
+				}	
+			}
+			maxCellDist++;
+		}
+		
+		/* Choose randomly one available cell then put the dinosaur onto it */
+		Random rnd = new Random();
+		placeDinosaur(theNewBorn, availableCells.get(rnd.nextInt(availableCells.size())).getPosition());
+		
+		
+	}
+	
+	/* This functions returns true if a cell is walkable and if there aren't other dinosaur onto it */
+	private boolean isCellFree(Position thePosition) {
+
+		Cell cell = getCell(thePosition); 
+	
+		if (cell.isWalkable() && cell.getDinosaur() == null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/** 
+	 * The method removeDinosaur removes the specified Dinosaur from the map
+	 *
+	 * @param theDinosaur
+	 * @throws NotFoundException          
+	 *  
+	 * @since	May 21, 2011@10:58:09 PM
+	 * 
+	 */
+	public void removeDinosaur(Dinosaur theDinosaur) throws NullPointerException {
+		
+		if (theDinosaur == null) {
+			throw new NullPointerException("The dinosaur cannot be null");
+		}
+		Map.getInstance().getCell(theDinosaur.getPosition()).setDinosaur(null);
+		theDinosaur.setPosition(null);
+	}
+	
+	/** 
+	 * The method moveDinosaur moves the specified Dinosaur to the specified Cell, if that is possible
+	 *
+	 * @param theDinosaur
+	 * @param theFinalPosition
+	 * @throws InvalidDestinationException
+	 * @throws InvalidDestinationException
+	 * @throws AlreadyOccupiedCellException
+	 * @throws FoodExpiredException          
+	 *  
+	 * @since	May 21, 2011@11:07:14 PM
+	 * 
+	 */
+	public void moveDinosaur(Dinosaur theDinosaur, Position theFinalPosition) throws 
+		InvalidPositionException, InvalidDestinationException,
+		AlreadyOccupiedCellException {
+		GraphMap graphMap = new GraphMap(theDinosaur);
+		
+		if (!validatePosition(theFinalPosition)) {
+			throw new InvalidPositionException("Invalid position");
+		}
+		
+		Cell startCell = getCell(theDinosaur.getPosition());
+		Cell endCell = getCell(theFinalPosition);
+		if (!graphMap.getGraph().containsVertex(Map.getInstance().getCell(theFinalPosition)) || graphMap.calculateShortestPath(startCell, endCell).size() > theDinosaur.getMaxStep()) {
+			throw new InvalidDestinationException("Unreachable destination");
+		}
+		
+		if (Map.getInstance().getCell(theFinalPosition).getDinosaur() != null) {
+			throw new AlreadyOccupiedCellException("There is already a dinosaur on the destination cell");
+		}
+		
+		getLogger().info("The dinosaur with ID " + theDinosaur.getId() +
+			" is moving to cell " + theFinalPosition);
+		placeDinosaur(theDinosaur, theFinalPosition);
+		
+		/* The movement has an energy cost for the dinosaur */
+		int theDinosaurInitialEnergy = theDinosaur.getEnergy();
+		theDinosaur.setEnergy(theDinosaurInitialEnergy - theDinosaur.getMovementEnergy());
+		
+		/* If there is food in the destination cell the dinosaur tries to eat it */
+		Food theCellFood = Map.getInstance().getCell(theFinalPosition).getFood();
+		if (theCellFood != null && theDinosaur.canEat(theCellFood)) {
+			theDinosaurInitialEnergy = theDinosaur.getEnergy();
+			int theFoodInitialEnergy = theCellFood.getEnergy();
+			theDinosaur.setEnergy(theDinosaurInitialEnergy + theFoodInitialEnergy);
+			int foodEaten = theDinosaur.getEnergy() - theDinosaurInitialEnergy;
+			try {
+				theCellFood.setEnergy(theCellFood.getEnergy() - foodEaten);
+			} catch (IllegalArgumentException e) {
+				logger.info("All the food present in the cell has been eaten");
+				if (theCellFood.isEdibleByCarnivorous()) {
+					getCell(theFinalPosition).removeFood();
+					placeCarrionRandomly();
+				}
+			}
+		}
+		
+	}
+	
+	/** 
+	 * The method validatePosition checks whether the given position is valid or not
+	 *
+	 * @param thePosition
+	 * @return true if the position given as parameter is valid
+	 * @return false if the position given as parameter is not valid          
+	 *  
+	 * @since	May 21, 2011@11:12:11 PM
+	 * 
+	 */
+	public boolean validatePosition(Position thePosition )
+	{
+		if (thePosition == null)
+			return false;
+		
+		/*
+		 * It checks if coordinates are non-negative and do not exceed the map size
+		 */
+		if ((
+				thePosition.getIntX() < Math.round(dimension.getX()) &&
+				thePosition.getIntX() >= 0 &&
+				thePosition.getIntY() < Math.round(dimension.getY()) &&
+				thePosition.getIntY() >= 0  
+			) == false) {
+			return false;
+		}	
+		
+		return true;
+		
+	}
+
+	public static void setupJdkLoggerHandler(JTextPane theLogJTextPane) {
+		
+		TextPaneHandler tph = new TextPaneHandler();
+		tph.setTextPane(theLogJTextPane);
+		tph.setFormatter(new HTMLFormatter());
+		logger.addHandler(tph);
+		
+	}
+	
+	
+	public String getLocalView(Dinosaur theDinosaur) {
+		
+		if (grid == null) {
+			NullPointerException e = new NullPointerException("The dinosaur can't be null");
+			getLogger().warning(StackTraceUtils.getThrowMessage(e));
+			throw e;
+		}
+		
+		int dimX = (int) getDimension().getX();
+		int dimY = (int) getDimension().getY();
+		
+		int dinoX = (int) theDinosaur.getPosition().getIntX();
+		int dinoY = (int) theDinosaur.getPosition().getIntY();
+		
+		int dinoFOVRadius = 2 + (int) Math.floor(theDinosaur.getSize()/2);
+		
+		int bottomLeftX = dinoX - dinoFOVRadius;
+		if (bottomLeftX < 0 )
+			bottomLeftX = 0;
+		
+		int bottomLeftY = dinoY - dinoFOVRadius;
+		if (bottomLeftY < 0 )
+			bottomLeftY = 0;
+		
+		int topRightY = dinoY + dinoFOVRadius;
+		if (topRightY > dimY-1)
+			topRightY = dimY-1;
+		
+		int topRightX = dinoX + dinoFOVRadius;
+		if (topRightX > dimX-1)
+			topRightX = dimX-1;
+		
+		int localViewWidth = (topRightX-bottomLeftX+1);
+		int localViewHeight = (topRightY-bottomLeftY+1);
+		
+		String str = "{" + (bottomLeftX) + "/" + (bottomLeftY) + "},"; 
+		str += "{" + localViewWidth + "/" + localViewHeight + "},";
+		
+		Cell cell;
+		
+		for (int y = bottomLeftY; y <= topRightY; y++) {
+				for (int x = bottomLeftX; x <= topRightX; x++) {
+				
+				cell = getCell(new Position(x,y));
+				
+				if (cell.getDinosaur() != null) {
+					str += "[d," + DinosaurIDManager.getInstance().getIdentifier(cell.getDinosaur()) + "]"; 
+				} else {
+					str += cell.getLocalViewSymbol();
+				}
+			}
+			
+			str += ";";
+		}
+		return str;
+	}
+
+	public boolean isDinosaurInLocalView(Dinosaur theDinosaur, Dinosaur theDinosaurToBeChecked) {
+		
+		//TODO Maybe it is worth to merge this method and the getLocalView method for exploit the common code
+		
+		int dimX = (int) getDimension().getX();
+		int dimY = (int) getDimension().getY();
+		
+		int dinoX = (int) theDinosaur.getPosition().getIntX();
+		int dinoY = (int) theDinosaur.getPosition().getIntY();
+		
+		int dinoFOVRadius = 2 + (int) Math.floor(theDinosaur.getSize()/2);
+		
+		int bottomLeftX = dinoX - dinoFOVRadius;
+		if (bottomLeftX < 0 )
+			bottomLeftX = 0;
+		
+		int bottomLeftY = dinoY - dinoFOVRadius;
+		if (bottomLeftY < 0 )
+			bottomLeftY = 0;
+		
+		int topRightY = dinoY + dinoFOVRadius;
+		if (topRightY > dimY-1)
+			topRightY = dimY-1;
+		
+		int topRightX = dinoX + dinoFOVRadius;
+		if (topRightX > dimX-1)
+			topRightX = dimX-1;
+		
+		Cell cell;
+		
+		for (int y = bottomLeftY; y <= topRightY; y++) {
+			for (int x = bottomLeftX; x <= topRightX; x++) {
+				
+				cell = getCell(new Position(x,y));
+				
+				if (cell.getDinosaur() != null) {
+					if (cell.getDinosaur().equals(theDinosaurToBeChecked)) {
+						return true;
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	public String getMainMap(Player thePlayer) {
+		
+		if (grid == null) {
+			System.out.println("There is no main map.");
+			return null;
+		}
+		
+		int dimX = (int) getDimension().getX();
+		int dimY = (int) getDimension().getY();
+	
+		
+		String str = "{" + dimX + "/" + dimY + "},";
+		
+		boolean visibilityTable[][] = thePlayer.getCurrentSpecies().getFOV();
+
+		Cell cell;
+
+		for (int y = 0; y < dimY; y++) {
+			for (int x = 0; x < dimX; x++) {
+				cell = getCell(new Position(x,y));
+				if (visibilityTable[x][y] == false) {
+					str += "[b]";
+				} else {
+					str += cell.getMainMapSymbol();
+				}
+			}
+			str += ";";
+		}
+		
+		return str;
+		
+	}
+	
+	public MapData saveData() {
+		
+		return new MapData(grid);
+	}
+	
+	public void loadData(MapData theMapData) {
+		
+		//setStandardBlankMap();
+		
+		Cell[][] loadedData = theMapData.getMap();
+				
+		Vector2D dim = theMapData.getDimension(); 
+
+		setDimension(dim);
+
+		int dimX = (int) dim.getX();
+		int dimY = (int) dim.getY();
+		
+		grid = new Cell[dimX][dimY];
+		
+		for (int y = 0; y < dimY; y++) {
+			for (int x = 0; x < dimX; x++) {
+				grid[x][y] = CellFactory.getInstance().cloneWithoutDinosaur(loadedData[x][y]);
+			}
+		}
+		
+		setMapIsGenerated(true);
+
+	}
+	
+	public String toString() {
+		
+		String str = "";
+		
+		for (int y = 0; y < getDimension().getY(); y++ ) {
+			for (int x = 0; x < getDimension().getX(); x++ ) {
+				str = str + grid[x][y];
+			}
+			str = str + "\n";
+		}
+		return str;
+	}
+
+	/* {@inheritDoc}
+	 * @see logging.Loggable#setupLogger()
+	 * 
+	 */
+	@Override
+	public void setupLogger() {
+		logger = Logger.getLogger("server.gameplay.map");
+		logger.setParent(Game.getInstance().getLogger());
+	}
+
+	/* {@inheritDoc}
+	 * @see logging.Loggable#getLogger()
+	 * 
+	 */
+	@Override
+	public Logger getLogger() {
+		return Logger.getLogger("server.gameplay");
+	}
+}

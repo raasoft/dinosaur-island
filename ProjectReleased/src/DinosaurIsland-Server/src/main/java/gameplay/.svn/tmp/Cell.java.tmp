@@ -1,0 +1,225 @@
+package gameplay;
+
+import exceptions.InvalidPositionException;
+
+//TODO Test the Cell Class
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * A cell represent a generic unit of map.
+ * <br>There can be four types of cell: Terrain, Vegetation, Carrion and Water;
+ * <br>the Cell class is the parent of the {@link TerrainCell}, {@link VegetationCell}, {@link CarrionCell}, {@link WaterCell} 
+ * <br>Cell stores information about:
+ * <ul>
+ * <li>The possibility to walk on the cell
+ * <li>The food present in the cell
+ * <li>Its position
+ * </ul>
+ * </p>
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * The Cell class is responsible for storing information about the type of cell present in the map
+ * </p>
+ *
+ * <br><b>Collaborators</b><br>
+ * <p>
+ * {@link Food}, {@link Position}
+ * </p>
+ * 
+ * @author	AXXO
+ * @version 1.1
+ * @since	May 21, 2011@8:00:54 PM
+ *
+ */
+public abstract class Cell {
+
+	protected boolean walkable = true;
+	protected Food food = null;
+	private Position position;
+	
+	/**
+	 * Constructor without parameters inherits implementation from parent  
+	 * 
+	 * @since May 21, 2011@8:39:35 PM
+	 */
+	public Cell() {
+		super();
+	}
+
+	/**
+	 * Constructor sets the position of the Cell
+	 * @param thePosition The desired position of the cell
+	 * @throws InvalidPositionException if the position given as parameter is invalid
+	 * 
+	 * @since May 21, 2011@8:14:58 PM
+	 */
+	public Cell(Position thePosition) throws InvalidPositionException {
+		
+		if (!Map.getInstance().validatePosition(thePosition)) {
+			throw new InvalidPositionException("Invalid Position");
+		}
+		
+		else {
+			position = thePosition;
+		}
+	}
+	
+	/** 
+	 * The method isWalkable returns true if the cell is walkable, false otherwise
+	 *
+	 * @return walkable The walkable property of the cell          
+	 *  
+	 * @since	May 21, 2011@8:33:40 PM
+	 * 
+	 */
+	public boolean isWalkable() {
+		return walkable;
+	}
+	
+	/** 
+	 * The method getFood returns the type of food present in the cell
+	 *
+	 * @return food The type of food present in the cell          
+	 *
+	 * @since	May 21, 2011@8:41:07 PM
+	 * 
+	 */
+	public Food getFood() {
+		return food;
+	}
+
+	/** 
+	 * The method getPosition returns the position of the cell
+	 *  
+	 * @return position The position of the cell
+	 *  
+	 * @since	May 21, 2011@8:42:44 PM
+	 * 
+	 */
+	public Position getPosition() {
+		return position;
+	}
+	
+	/** 
+	 * The method setWalkable specifies whether the cell is walkable or not
+	 * 
+	 * @param theValue The desired boolean condition for walkable         
+	 *
+	 * @since	May 21, 2011@8:49:57 PM
+	 * 
+	 */
+	public void setWalkable(boolean theValue) {
+		walkable = theValue;
+	}
+
+	/** 
+	 * The method setFood sets the type of food present in the cell
+	 *
+	 * @param theFood the type of food          
+	 *  
+	 * @since	May 21, 2011@8:51:42 PM
+	 * 
+	 */
+	public void setFood(Food theFood) {
+		food = theFood;
+	}
+	
+	/** 
+	 * The method setPosition sets the position of the cell
+	 *
+	 * @param thePosition The desired position of the cell          
+	 * @throws InvalidPositionException if the position given as parameter is invalid
+	 *
+	 * @since	May 21, 2011@8:43:43 PM
+	 * 
+	 */
+	public void setPosition(Position thePosition) throws InvalidPositionException {
+	
+		if (!Map.getInstance().validatePosition(thePosition)) {
+			throw new InvalidPositionException("Invalid Position");
+		}
+		
+		else {
+			position = thePosition;
+		}
+	}
+	
+	/**
+	 * <p>
+	 * TerrainCell is a subclass of {@linkCell} and defines a cell containing walkable terrain and no food
+	 * <b>Collaborators</b><br>
+	 * <p>
+	 * {@link Food} 
+	 * </p>
+	 * 
+	 * @author	AXXO
+	 * @version 1.1
+	 * @since	May 21, 2011@9:01:07 PM
+	 *
+	 */
+	public class TerrainCell extends Cell {
+
+		protected boolean isWalkable = true;
+		protected Food food = null;
+	}
+	
+	/**
+	 * <p>
+	 * VegetationCell class is a subclass of {@linkCell} and defines a cell containing walkable terrain and vegetation
+	 * <b>Collaborators</b><br>
+	 * <p>
+	 * {@link Food} 
+	 * </p>
+	 * 
+	 * @author	AXXO
+	 * @version 1.1
+	 * @since	May 21, 2011@9:04:07 PM
+	 *
+	 */
+	public class VegetationCell extends Cell {
+
+		protected boolean isWalkable = true;
+		protected Food food = new Vegetation();
+	}
+	
+	/**
+	 * <p>
+	 * CarrionCell class is a subclass of {@linkCell} and defines a cell containing walkable terrain and a carrion
+	 * <b>Collaborators</b><br>
+	 * <p>
+	 * {@link Food} 
+	 * </p>
+	 * 
+	 * @author	AXXO
+	 * @version 1.1
+	 * @since	May 21, 2011@9:06:07 PM
+	 *
+	 */
+	public class CarrionCell extends Cell {
+
+		protected boolean isWalkable = true;
+		protected Food food = new Carrion();
+	}
+	
+	/**
+	 * <p>
+	 * WaterCell class is a subclass of {@linkCell} and defines a cell containing not walkable water and no food
+	 * <b>Collaborators</b><br>
+	 * <p>
+	 * {@link Food} 
+	 * </p>
+	 * 
+	 * @author	AXXO
+	 * @version 1.1
+	 * @since	May 21, 2011@9:08:07 PM
+	 *
+	 */
+	public class WaterCell extends Cell {
+
+		protected boolean isWalkable = false;
+		protected Food food = null;
+	}
+
+}

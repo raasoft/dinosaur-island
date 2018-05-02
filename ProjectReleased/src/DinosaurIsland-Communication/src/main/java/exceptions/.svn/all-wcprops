@@ -1,0 +1,185 @@
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/299/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions
+END
+NegativeResponseException.java
+K 25
+svn:wc:ra_dav:version-url
+V 166
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/125/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/NegativeResponseException.java
+END
+InvalidMapException.java
+K 25
+svn:wc:ra_dav:version-url
+V 160
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/299/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/InvalidMapException.java
+END
+SpeciesAlreadyCreatedException.java
+K 25
+svn:wc:ra_dav:version-url
+V 171
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/109/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/SpeciesAlreadyCreatedException.java
+END
+FightWonException.java
+K 25
+svn:wc:ra_dav:version-url
+V 158
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/154/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/FightWonException.java
+END
+InvalidTokenException.java
+K 25
+svn:wc:ra_dav:version-url
+V 162
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/124/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/InvalidTokenException.java
+END
+GameLeavingDeniedException.java
+K 25
+svn:wc:ra_dav:version-url
+V 167
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/135/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/GameLeavingDeniedException.java
+END
+PasswordMismatchException.java
+K 25
+svn:wc:ra_dav:version-url
+V 166
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/112/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/PasswordMismatchException.java
+END
+IllegalResponseException.java
+K 25
+svn:wc:ra_dav:version-url
+V 165
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/106/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/IllegalResponseException.java
+END
+InvalidDestinationException.java
+K 25
+svn:wc:ra_dav:version-url
+V 168
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/136/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/InvalidDestinationException.java
+END
+EmptyIdentifierPoolException.java
+K 25
+svn:wc:ra_dav:version-url
+V 169
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/106/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/EmptyIdentifierPoolException.java
+END
+InvalidLocalViewException.java
+K 25
+svn:wc:ra_dav:version-url
+V 166
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/299/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/InvalidLocalViewException.java
+END
+NotFoundException.java
+K 25
+svn:wc:ra_dav:version-url
+V 158
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/106/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/NotFoundException.java
+END
+MaxSizeReachedException.java
+K 25
+svn:wc:ra_dav:version-url
+V 164
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/140/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/MaxSizeReachedException.java
+END
+MaxInGamePlayersExceededException.java
+K 25
+svn:wc:ra_dav:version-url
+V 174
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/122/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/MaxInGamePlayersExceededException.java
+END
+AlreadyOccupiedCellException.java
+K 25
+svn:wc:ra_dav:version-url
+V 169
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/136/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/AlreadyOccupiedCellException.java
+END
+PlayerNotInGameException.java
+K 25
+svn:wc:ra_dav:version-url
+V 165
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/130/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/PlayerNotInGameException.java
+END
+MaxMovesLimitException.java
+K 25
+svn:wc:ra_dav:version-url
+V 163
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/147/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/MaxMovesLimitException.java
+END
+StarvationDeathException.java
+K 25
+svn:wc:ra_dav:version-url
+V 165
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/136/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/StarvationDeathException.java
+END
+FightLostException.java
+K 25
+svn:wc:ra_dav:version-url
+V 159
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/154/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/FightLostException.java
+END
+SpeciesNotCreatedException.java
+K 25
+svn:wc:ra_dav:version-url
+V 167
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/122/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/SpeciesNotCreatedException.java
+END
+IdentifierNotPresentException.java
+K 25
+svn:wc:ra_dav:version-url
+V 170
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/106/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/IdentifierNotPresentException.java
+END
+GameAccessDeniedException.java
+K 25
+svn:wc:ra_dav:version-url
+V 166
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/122/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/GameAccessDeniedException.java
+END
+NameAlreadyTakenException.java
+K 25
+svn:wc:ra_dav:version-url
+V 166
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/106/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/NameAlreadyTakenException.java
+END
+MaxSpeciesAgeExceededException.java
+K 25
+svn:wc:ra_dav:version-url
+V 171
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/299/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/MaxSpeciesAgeExceededException.java
+END
+InvalidDinosaurIDException.java
+K 25
+svn:wc:ra_dav:version-url
+V 167
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/124/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/InvalidDinosaurIDException.java
+END
+SpeciesIsFullException.java
+K 25
+svn:wc:ra_dav:version-url
+V 163
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/106/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/SpeciesIsFullException.java
+END
+InvalidPositionException.java
+K 25
+svn:wc:ra_dav:version-url
+V 165
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/299/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/InvalidPositionException.java
+END
+TurnNotOwnedByPlayerException.java
+K 25
+svn:wc:ra_dav:version-url
+V 170
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/130/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/TurnNotOwnedByPlayerException.java
+END
+PlayerAlreadyInGameException.java
+K 25
+svn:wc:ra_dav:version-url
+V 169
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/122/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/PlayerAlreadyInGameException.java
+END
+FailedRegistrationException.java
+K 25
+svn:wc:ra_dav:version-url
+V 168
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/106/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Communication/src/main/java/exceptions/FailedRegistrationException.java
+END

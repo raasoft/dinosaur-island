@@ -1,0 +1,17 @@
+<<<<<<< .mine
+#--- Client Settings ---
+#Sat Jun 25 11:59:38 CEST 2011
+Username=axxo
+Host=10.42.43.1
+Password=axxo
+Connection=Socket
+Port=3466
+=======
+#--- Client Settings ---
+#Sat Jun 25 12:02:35 CEST 2011
+Username=raa
+Host=fe80\:0\:0\:0\:803\:3ba\:f5d5\:d4a3%14
+Password=raa
+Connection=RMI
+Port=1099
+>>>>>>> .r216

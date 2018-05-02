@@ -1,0 +1,259 @@
+/**
+ * Copyright (c) 2011 RAAXXO
+ * 
+ * This file is part of Dinosaur Island.
+ * 
+ */
+package gui;
+
+<<<<<<< .mine
+
+
+import java.applet.Applet;
+=======
+>>>>>>> .r133
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Label;
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+
+import javax.swing.JApplet;
+import javax.swing.JFrame;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * Description of the type.
+ * This state information includes:
+ * <ul>
+ * <li>Element 1
+ * <li>Element 2
+ * <li>The current element implementation 
+ *     (see <a href="#setXORMode">setXORMode</a>)
+ * </ul>
+ * </p>
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * Other description in a separate paragraph.
+ * </p>
+ *
+ * <b>Collaborators</b><br>
+ * <p>
+ * Here write about classes 
+ * </p>
+ * 
+ * @author	AXXO
+ * @version 1.0
+ * @since	Jun 6, 2011@3:56:34 PM
+ *
+ */
+
+//Use double buffering to remove rectangle flickers and make it repaint faster.
+public class TestMouseDrag extends JApplet {
+  /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	static protected Label label = new Label(
+      "Drag rectangle around within the area");
+	MyCanvas myCanvas;
+	
+
+  public void init() {
+
+    getContentPane().setLayout(new BorderLayout());
+    
+    myCanvas = new MyCanvas();
+    
+    getContentPane().add(myCanvas);
+
+    getContentPane().add("South", label);
+    
+  }
+
+  public static void main(String s[]) {
+	  
+	  EventQueue.invokeLater(new Runnable() {
+		  
+		  public void run() {
+	  
+			  
+		    JFrame f = new JFrame("ShapeMover");
+		    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		    JApplet applet = new TestMouseDrag();
+		    f.add("Center", applet);
+		    applet.init();
+		    f.pack();
+		    f.setSize(new Dimension(550, 250));
+		    f.setVisible(true);
+		  
+		  }
+	  });
+  }
+
+class MyCanvas extends Canvas { // implements MouseListener, MouseMotionListener {
+  /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	
+	
+	
+	Rectangle rect; // = new Rectangle(0, 0, 50, 50);
+
+	  Graphics2D g2;
+	
+	  int preX, preY;
+	
+	  boolean isFirstTime = true;
+	
+	  Rectangle area;
+	
+	  boolean selected = false;
+	  
+	  private Rectangle[][] map = new Rectangle[40][40];
+  
+  
+  public MyCanvas() {
+    setBackground(Color.white);
+   
+    
+    for (int i = 0; i < 40; i++) {
+      	for (int j = 0; j < 40; j++) {
+      		rect = new Rectangle(0 + i*50, 0 + j*50, 50, 50);
+      		map[i][j] = rect;
+      		map[i][j].setLocation(i*50, j*50);
+      	}
+      }
+    
+  }
+
+  public void mousePressed(MouseEvent e) {	  
+	  
+	  //TODO ONLY LEFT MOUSE BUTTON
+	  
+	  for (int i = 0; i < 40; i++) {
+	      	for (int j = 0; j < 40; j++) {
+	      		if (map[i][j].contains(e.getX(), e.getY())) {
+	      			selected = true; 
+	      			label.setText("Pressed inside a rectangle");
+	      		}
+	      		} 
+	  
+	  preX = e.getX();
+	  preY = e.getY();
+  }
+  }
+  
+  //public void mouseDragged(MouseEvent e) {
+  public void drag(MouseEvent e) {
+	  
+            int newX = e.getX() - preX;
+            int newY = e.getY() - preY;
+	  	
+       if (selected) {     
+	 	  updateLocation(e, newX, newY);
+	 	 e.getComponent().repaint(); }
+	 	  
+	 	 preX = e.getX();
+	 	 preY = e.getY();
+  }
+
+  public void release(MouseEvent e) {
+	 
+	  selected = false; //repaint(); 
+	 
+  }
+
+  public void updateLocation(MouseEvent e, int theNewX, int theNewY) {
+	  
+	  
+	  for (int i = 0; i < 40; i++) {
+      	for (int j = 0; j < 40; j++) {
+      		
+        		map[i][j].setLocation((int) map[i][j].getX() + theNewX, (int)map[i][j].getY() + theNewY);        	    
+      	}
+	  }
+        	
+  }
+    
+
+   
+  
+
+	  public void paint(Graphics g) {
+	    update(g);
+	  }
+	
+	  public void update(Graphics g) {
+	    Graphics2D g2 = (Graphics2D) g;
+	    Dimension dim = getSize();
+	    int w = (int) dim.getWidth();
+	    int h = (int) dim.getHeight();
+	    g2.setStroke(new BasicStroke(2.0f));
+	
+	    if (isFirstTime) {
+	    	area = new Rectangle(dim);
+	    	
+	    }
+
+ // Clears the rectangle that was previously drawn.
+	    g2.setPaint(Color.white);
+		g2.fill(area);
+    
+    
+    for (int i = 0; i < 40; i++) {
+      	for (int j = 0; j < 40; j++) {
+    
+      		g2.setColor(Color.red);
+      		g2.draw(map[i][j]);
+      		g2.setColor(Color.black);
+      		g2.fill(map[i][j]);
+      	}
+    }
+  }
+
+  boolean checkRect() {
+    if (area == null) {
+      return false;
+    }
+
+    for (int i = 0; i < 40; i++) {
+      	for (int j = 0; j < 40; j++) {
+    
+    if (area.contains(map[i][j].x, map[i][j].y, 50, 50)) {
+      return true;
+    }
+    int new_x = map[i][j].x;
+    int new_y = map[i][j].y;
+
+    if ((map[i][j].x + 50) > area.getWidth()) {
+      new_x = (int) area.getWidth() - 49;
+    }
+    if (map[i][j].x < 0) {
+      new_x = -1;
+    }
+    if ((map[i][j].y + 50) > area.getHeight()) {
+      new_y = (int) area.getHeight() - 49;
+    }
+    if (map[i][j].y < 0) {
+      new_y = -1;
+    }
+    map[i][j].setLocation(new_x, new_y);
+      	}
+    }
+    return false;
+  }
+}
+}

@@ -1,0 +1,1023 @@
+/**
+ * Copyright (c) 2011 RAAXXO
+ * 
+ * This file is part of Dinosaur Island.
+ * 
+ */
+package gameplay;
+
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import beans.DinosaurStatus;
+
+import communication.ClientHandler;
+
+import util.Position;
+import util.StackTraceUtils;
+
+import logging.Loggable;
+
+import exceptions.AlreadyOccupiedCellException;
+import exceptions.FightLostException;
+import exceptions.FightWonException;
+import exceptions.IdentifierNotPresentException;
+import exceptions.InvalidDestinationException;
+import exceptions.InvalidPositionException;
+import exceptions.MaxInGamePlayersExceededException;
+import exceptions.MaxMovesLimitException;
+import exceptions.MaxSizeReachedException;
+import exceptions.MaxSpeciesAgeExceededException;
+import exceptions.NotFoundException;
+import exceptions.PlayerAlreadyInGameException;
+import exceptions.PlayerNotInGameException;
+import exceptions.SpeciesIsFullException;
+import exceptions.SpeciesNotCreatedException;
+import exceptions.StarvationDeathException;
+import exceptions.TurnNotOwnedByPlayerException;
+import gameplay.map.Map;
+import gui.ServerMainWindow;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * Description of the type.
+ * This state information includes:
+ * <ul>
+ * <li>Element 1
+ * <li>Element 2
+ * <li>The current element implementation 
+ *     (see <a href="#setXORMode">setXORMode</a>)
+ * </ul>
+ * </p>
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * Other description in a separate paragraph.
+ * </p>
+ *
+ * <b>Collaborators</b><br>
+ * <p>
+ * Here write about classes 
+ * </p>
+ * 
+ * @author	AXXO
+ * @version 1.0
+ * @since	Jun 4, 2011@4:06:06 PM
+ *
+ */
+final public class Game implements Loggable {
+
+	private static Logger logger;
+	final private static Game uniqueInstance = new Game();
+	
+	private ArrayList<ClientHandler> changeTurnListenersList;
+	
+	private static int currentTurn;
+	private static GameState state;
+	
+	
+	TurnConfirmationTimerTask turnConfirmationTimerTask;
+	boolean turnConfirmationTimerIsRunning;
+	Timer turnConfirmationTimer;
+	
+	boolean timerForStartingGameAlreadyFired = false;
+	
+	TurnExecutionTimerTask turnExecutionTimerTask;
+	boolean turnExecutionTimerIsRunning;
+	Timer turnExecutionTimer;
+	
+	static final int TURN_CONFIRMATION_DELAY = 5000; //TEST 5000
+	static final int TURN_EXECUTION_DELAY = 15000; //FIXME 10000
+	
+	private static ArrayList<Player> inGamePlayers;
+	private static int currentPlayerIndex;
+	private static int playersMax = 8;
+	
+	private Game() {
+		
+		setupLogger();
+		
+		Map.getInstance();
+		
+		inGamePlayers = new ArrayList<Player>();
+		setCurrentPlayerIndex(-1);
+
+		changeTurnListenersList = new ArrayList<ClientHandler>();
+		
+		state = GameState.STOP;
+		setupTimers();
+	}
+	
+	public static Game getInstance() {
+		return uniqueInstance;
+	}	
+	
+	/**
+	 * @return the currentPlayerIndex
+	 */
+	public int getCurrentPlayerIndex() {
+		return currentPlayerIndex;
+	}
+	
+	public void checkPlayerInGameConsistency(Player thePlayer) 
+			throws PlayerNotInGameException {
+		
+		boolean found = false;
+		
+		found = inGamePlayers.contains(thePlayer);
+		
+		if (!found) {
+			PlayerNotInGameException ex = new PlayerNotInGameException("The player is not ingame");
+			getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+			throw ex;
+		}
+		
+	}
+
+	/**
+	 * @param currentPlayerIndex the currentPlayerIndex to set
+	 */
+	public void setCurrentPlayerIndex(int theCurrentPlayerIndex) {
+		currentPlayerIndex = theCurrentPlayerIndex;
+	}
+	
+	public void setPlayersMax(int theValue) throws IllegalArgumentException {
+		
+		if (theValue <= 0) {
+			IllegalArgumentException ex = new IllegalArgumentException("The maximum number of players can't be non positive");
+			getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+			throw ex;
+		}
+		
+		playersMax = theValue;
+	}
+	
+	public int getPlayersMax() {
+		return playersMax;
+	}
+	
+	public int getCurrentTurn() {
+		return currentTurn;
+	}
+	
+	public ArrayList<Player> getInGamePlayers() {
+		return new ArrayList<Player>(inGamePlayers);
+	}
+	
+
+	public int getInGamePlayersNumber() {
+		return inGamePlayers.size();
+	}
+	
+	/**
+	 * @return the running
+	 */
+	public boolean isRunning() {
+		if (getState() != GameState.STOP)
+			return true;
+		else 
+			return false;
+	}
+
+	public Player getCurrentPlayer() {
+		if (getCurrentPlayerIndex() == -1 ) {
+			return null;
+		} else {
+			return inGamePlayers.get(getCurrentPlayerIndex());
+		}
+	}
+	
+	private void startGame() {
+		getLogger().info("Starting the game");
+		
+		if (Map.isMapGenerated() == false) {
+			Map.getInstance().createRandomMap();
+		}		
+		changeState(GameState.WAITING_TURN_CONFIRMATION);
+	}
+	
+	public void stopGame() {
+		
+		changeState(GameState.STOP);
+		timerForStartingGameAlreadyFired = false;
+
+	}
+	
+	public Dinosaur addDinosaur(Player thePlayer) throws IllegalArgumentException, SpeciesIsFullException {
+		
+		if (thePlayer == null) {
+			throw new IllegalArgumentException("The player cannot be null");
+		}
+		
+		if (thePlayer.getCurrentSpecies() == null) {
+			throw new IllegalArgumentException("The player MUST have one species assigned");
+		}
+		
+		/* This method can throw the SpeciesIsFullException */
+		Dinosaur newBorn = thePlayer.getCurrentSpecies().addDinosaur();
+		
+		registerDinosaurInGame(newBorn);
+		
+		/* Now that the dinosaur has been created, register it */
+		Map.getInstance().placeDinosaurRandomly(newBorn);
+
+		return newBorn;
+		
+	}
+	
+	/* IMPORTANT:
+	 * This method is intended to register a new fresh dinosaur or the existing dinosaur of a player when the 
+	 * server is resumed without using the addDinosaur method (that creates a fresh new dinosaur instead);
+	 */
+	private void registerDinosaurInGame(Dinosaur theDinosaur) {
+		
+		if (DinosaurIDManager.getInstance().containsIdentifier(theDinosaur) == false) {
+			DinosaurIDManager.getInstance().assignIdentifierToObject(theDinosaur);
+		}
+	}
+	
+	public void growDinosaur(Dinosaur theDinosaur) throws 
+		IdentifierNotPresentException, MaxSizeReachedException,
+		PlayerNotInGameException, TurnNotOwnedByPlayerException,
+		MaxMovesLimitException, NullPointerException {
+		
+		if (theDinosaur == null) {
+			NullPointerException e = new NullPointerException("The dinosaur cannot be null");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (DinosaurIDManager.getInstance().getIdentifier(theDinosaur) == null) {
+			IdentifierNotPresentException e = new IdentifierNotPresentException("The dinosaur is not in game");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		Player dinosaurOwner = theDinosaur.getSpecies().getPlayer();
+		if (inGamePlayers.contains(dinosaurOwner) == false) {
+			PlayerNotInGameException e = new PlayerNotInGameException("The player is not in game");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (getCurrentPlayerIndex() != inGamePlayers.indexOf(dinosaurOwner)) {
+			TurnNotOwnedByPlayerException e = new TurnNotOwnedByPlayerException("The player is not allowed to move in this turn");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (theDinosaur.isAbleToGrow() == false) {
+			MaxMovesLimitException e = new MaxMovesLimitException("The dinosaur can't grow anymore in this turn");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (theDinosaur.getSize() == theDinosaur.getSizeMax()) {
+			MaxSizeReachedException e = new MaxSizeReachedException("The dinosaur has already reached its maximum size");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (theDinosaur.getEnergy() <= theDinosaur.getGrowthEnergy()) {
+			removeDinosaur(theDinosaur);
+			StarvationDeathException e = new StarvationDeathException("The dinosaur died because it hadn't got enough energy to grow");
+			logger.info(e.getMessage());
+			throw e;
+		}
+		
+		try {
+			int initialEnergy = theDinosaur.getEnergy();
+			theDinosaur.setEnergy(initialEnergy- theDinosaur.getGrowthEnergy());
+			int initialSize = theDinosaur.getSize();
+			theDinosaur.setSize(initialSize + 1);
+			logger.info("Dinosaur " + theDinosaur.getId() + " has grown to size " + theDinosaur.getSize());
+			/* The dinosaur can't grow anymore in this turn */
+			theDinosaur.setAbleToGrow(false);
+		} catch (IllegalArgumentException e) {
+			logger.warning(e.getMessage());
+		}
+		
+	}
+	
+	/**
+	 * This method returns the String containing the ID of the new born dinosaur
+	 */
+	public String layEgg(Dinosaur theDinosaur) throws
+		NullPointerException, MaxMovesLimitException,
+		IdentifierNotPresentException, TurnNotOwnedByPlayerException,
+		PlayerNotInGameException, StarvationDeathException, 
+		SpeciesIsFullException {
+		
+		if (theDinosaur == null) {
+			NullPointerException e = new NullPointerException("The dinosaur cannot be null");
+			logger.warning(e.getMessage());
+			throw e;
+		
+		}
+		
+		if (DinosaurIDManager.getInstance().getIdentifier(theDinosaur) == null) {
+			 IdentifierNotPresentException e = new IdentifierNotPresentException("The dinosaur to move is not in game");
+			 logger.warning(e.getMessage());
+			 throw e;
+		}
+		
+		if (theDinosaur.isAbleToAct() == false) {
+			MaxMovesLimitException e = new MaxMovesLimitException("The dinosaur has already made its maximum number of moves in this turn");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		Player dinosaurOwner = theDinosaur.getSpecies().getPlayer();
+		if (inGamePlayers.contains(dinosaurOwner) == false) {
+			PlayerNotInGameException e = new PlayerNotInGameException("The player is not in game");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (getCurrentPlayerIndex() != inGamePlayers.indexOf(dinosaurOwner)) {
+			TurnNotOwnedByPlayerException e = new TurnNotOwnedByPlayerException("The player is not allowed to move in this turn");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (theDinosaur.getEnergy() <= theDinosaur.getEggDepositionEnergy()) {
+			StarvationDeathException e = new StarvationDeathException("The dinosaur died because he hadn't got enough energy to lay an egg");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		try {
+			logger.info("Dinosaur " + theDinosaur.getId() + " is trying to lay an egg");
+			Dinosaur newBorn = theDinosaur.getSpecies().addDinosaur();
+			logger.info("Dinosaur " + theDinosaur.getId() + " succesfully laid an egg");
+			theDinosaur.setAbleToAct(false);
+			/* The new born dinosaur is not able to grow,move or lay an egg in this turn */
+			newBorn.setAbleToAct(false);
+			newBorn.setAbleToGrow(false);
+			registerDinosaurInGame(newBorn);
+			logger.info("The new born dinosaur received ID " + newBorn.getId());
+			Map.getInstance().placeDinosaurRandomly(newBorn, theDinosaur);
+			int initialEnergy = theDinosaur.getEnergy();
+			theDinosaur.setEnergy(initialEnergy - theDinosaur.getEggDepositionEnergy());
+			return newBorn.getId();
+		} catch (SpeciesIsFullException e) {
+			logger.warning(e.getMessage());
+			throw new SpeciesIsFullException(e.getMessage());
+		}
+		
+	}
+	
+	public void moveDinosaur(Dinosaur theDinosaur, Position theFinalPosition) throws
+		IdentifierNotPresentException, StarvationDeathException, 
+		InvalidDestinationException, PlayerNotInGameException, 
+		TurnNotOwnedByPlayerException, MaxMovesLimitException,
+		NullPointerException, FightLostException,
+		FightWonException {
+		
+		if (theDinosaur == null || theFinalPosition == null ) {
+			NullPointerException e = new NullPointerException("Dinosaur and position cannot be null");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (DinosaurIDManager.getInstance().getIdentifier(theDinosaur) == null) {
+			IdentifierNotPresentException e = new IdentifierNotPresentException("The dinosaur to move is not in game");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		Player dinosaurOwner = theDinosaur.getSpecies().getPlayer();
+		if (inGamePlayers.contains(dinosaurOwner) == false) {
+			PlayerNotInGameException e = new PlayerNotInGameException("The player is not in game");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (getCurrentPlayerIndex() != inGamePlayers.indexOf(dinosaurOwner)) {
+			TurnNotOwnedByPlayerException e = new TurnNotOwnedByPlayerException("The player is not allowed to move in this turn");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (theDinosaur.isAbleToAct() == false) {
+			MaxMovesLimitException e = new MaxMovesLimitException("The dinosaur has already made its maximum number of moves in this turn");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		/**
+		 * To successfully execute a movement a dinosaur must have enough energy, otherwise it dies
+		 */
+		if (theDinosaur.getEnergy() <= theDinosaur.getMovementEnergy()) {
+			removeDinosaur(theDinosaur);
+			StarvationDeathException e = new StarvationDeathException("The dinosaur died because it hadn't got enough energy for the movemnet");
+			logger.warning(e.getMessage());
+			throw e;
+		}
+		
+		if (getState() == GameState.WAITING_TURN_CONFIRMATION) {
+			changeState(GameState.TURN_EXECUTION);
+		}
+		
+		try {
+			Map.getInstance().moveDinosaur(theDinosaur, theFinalPosition);
+			/* If the dinosaur has moved it won't be able to move again or lay an egg in this turn */
+			theDinosaur.setAbleToAct(false);
+		} catch (InvalidDestinationException e) {
+			logger.warning(StackTraceUtils.getCatchMessage(e));
+			throw new InvalidDestinationException(e.getMessage());
+		} catch (InvalidPositionException e) {
+			logger.warning(StackTraceUtils.getCatchMessage(e));
+			throw new InvalidDestinationException(e.getMessage());
+		} catch (AlreadyOccupiedCellException e) {
+			logger.info(e.getMessage());
+			Dinosaur theOtherDinosaur = Map.getInstance().getDinosaur(theFinalPosition);
+			
+			if ((!theDinosaur.isAggressive() && !theOtherDinosaur.isAggressive()) == false && !theDinosaur.getSpecies().equals(theOtherDinosaur.getSpecies())) {
+				if (manageFight(theDinosaur, theOtherDinosaur) == theDinosaur) {
+					Map.getInstance().moveDinosaur(theDinosaur, theFinalPosition);
+					/* If the dinosaur has moved it won't be able to move again or lay an egg in this turn */
+					theDinosaur.setAbleToAct(false);
+					FightWonException ex = new FightWonException("You won the fight");
+					logger.info(ex.getMessage());
+					throw ex;
+				} else {
+					FightLostException ex = new FightLostException("You lost the fight");
+					logger.info(ex.getMessage());
+					throw ex;
+				}
+			} else if (theDinosaur.getSpecies().equals(theOtherDinosaur.getSpecies())) {
+				InvalidDestinationException ex = new InvalidDestinationException("The final destination contains a dinosaur of the same species");
+				logger.warning(ex.getMessage());
+				throw ex;
+			} else if ((!theDinosaur.isAggressive() && !theOtherDinosaur.isAggressive()) == true) {
+				InvalidDestinationException ex = new InvalidDestinationException("The final destination contains another herbivore");
+				logger.warning(ex.getMessage());
+				throw ex;
+			}
+		}
+	}
+	
+	private Dinosaur manageFight(Dinosaur theAttacker, Dinosaur theDefender) {
+		
+		int attackerStrength = theAttacker.getStrength();
+		int defenderStrength = theDefender.getStrength();
+		
+		if (attackerStrength >= defenderStrength) {
+			if (theAttacker.isAggressive()) {
+				theAttacker.setEnergy(theAttacker.getEnergy() + (int)0.75 * theDefender.getEnergy());
+			}
+			logger.info("The attacked dinosaur with ID " + theDefender.getId() + " has died after the fight");
+			removeDinosaur(theDefender);
+			return theAttacker;
+		} else {
+			if (theDefender.isAggressive()) {
+				theDefender.setEnergy(theDefender.getEnergy() + (int)0.75 * theAttacker.getEnergy());
+			}
+			logger.info("The attacker dinosaur with ID " + theAttacker.getId() + " has died after the fight");
+			removeDinosaur(theAttacker);
+			return theDefender;
+		}
+	}	
+	
+	public DinosaurStatus getDinosaurStatus(Player thePlayer, Dinosaur theDinosaur) {
+		
+		if (theDinosaur == null) {
+			
+			NullPointerException e = new NullPointerException("The dinosaur can't be null!");
+			getLogger().warning(StackTraceUtils.getThrowMessage(e));
+			throw e;
+		}
+		
+		if (thePlayer == null) {
+			
+			NullPointerException e = new NullPointerException("The player can't be null!");
+			getLogger().warning(StackTraceUtils.getThrowMessage(e));
+			throw e;
+		}
+		
+		boolean isInLocalView = false;
+		
+		for (Dinosaur dino : thePlayer.getCurrentSpecies().getDinosaurList()) {
+			if (Map.getInstance().isDinosaurInLocalView(dino, theDinosaur)) {
+				isInLocalView = true;
+				break;
+			}
+		}
+		
+		System.out.println(" THE ENERGY IS: "+theDinosaur.getEnergy());
+		
+		if (isInLocalView) {
+			return new DinosaurStatus(thePlayer.getUsername(), theDinosaur.getSpecies().getName(), theDinosaur.getSymbol().charAt(0), theDinosaur.getPosition(), theDinosaur.getSize(), theDinosaur.getEnergy(), theDinosaur.getAge());
+		} else {
+			return new DinosaurStatus(thePlayer.getUsername(), theDinosaur.getSpecies().getName(), theDinosaur.getSymbol().charAt(0), theDinosaur.getPosition(), theDinosaur.getSize()); 
+		}
+		
+	}
+	
+	public void addChangeTurnListener(ClientHandler theClientHandler) {
+		
+		if (theClientHandler == null) {
+			IllegalArgumentException ex = new IllegalArgumentException("The client handler cannot be null");
+			getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+			throw ex;
+		}
+		
+		changeTurnListenersList.add(theClientHandler);
+		
+	}
+	
+	public void removeChangeTurnListener(ClientHandler theClientHandler) {
+		
+		if (theClientHandler == null) {
+			IllegalArgumentException ex = new IllegalArgumentException("The client handler cannot be null");
+			getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+			throw ex;
+		}
+		
+		if (changeTurnListenersList.contains(theClientHandler) == false) {
+			IllegalArgumentException ex = new IllegalArgumentException("The client handler is not registered in the client handler listener list");
+			getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+			throw ex;
+		}
+		
+		changeTurnListenersList.remove(theClientHandler);
+	}
+	
+	
+	public void addPlayer(Player thePlayer) throws IllegalArgumentException, PlayerAlreadyInGameException, SpeciesNotCreatedException, MaxInGamePlayersExceededException {
+		
+		if (thePlayer == null) {
+			throw new IllegalArgumentException("The player cannot be null");
+		}
+		
+		if (inGamePlayers.contains(thePlayer) == true) {
+			throw new PlayerAlreadyInGameException("The player is already in game");
+		}
+		
+		if (thePlayer.getCurrentSpecies() == null) {
+			throw new SpeciesNotCreatedException("The player has not created a species yet");
+		}
+		
+		if (inGamePlayers.size() == playersMax) {
+			throw new MaxInGamePlayersExceededException("The maximum amount of players in game has been reached");
+		}
+		getLogger().info("Adding the player \""+thePlayer.getUsername() + "\" to the game");
+		inGamePlayers.add(thePlayer);
+
+		if (isRunning() == false) {
+			getLogger().info("Since a new player was added, let's start the game");
+			startGame();
+		}
+
+	}
+	
+	private void removeDinosaur(Dinosaur theDinosaur) throws NullPointerException {
+		if (theDinosaur == null) {
+			throw new NullPointerException("The dinosaur cannot be null");
+		}
+		try {
+			Map.getInstance().removeDinosaur(theDinosaur);
+		} catch (NotFoundException e) {
+			logger.warning(StackTraceUtils.getThrowMessage(e));
+		}
+		theDinosaur.getSpecies().removeDinosaur(theDinosaur);
+		try {
+			DinosaurIDManager.getInstance().removeIdentifierFromObject(theDinosaur);
+		} catch (IdentifierNotPresentException e) {
+			logger.warning(StackTraceUtils.getThrowMessage(e));
+		}
+			theDinosaur = null;	
+	}
+	
+	public void removePlayer(Player thePlayer) throws IllegalArgumentException, PlayerNotInGameException {
+		
+		if (thePlayer == null) {
+			throw new IllegalArgumentException("The player cannot be null");
+		}
+		
+		//FIXME
+		if (inGamePlayers.contains(thePlayer) == false) {
+			throw new PlayerNotInGameException("The player is not in game");
+		}
+		
+		getLogger().info("Removing the player \""+thePlayer.getUsername() + "\" to the game");
+		
+		
+		if (getCurrentPlayer() == thePlayer) {
+			setCurrentPlayerIndex(getCurrentPlayerIndex()-1);
+		}
+		
+		for (Dinosaur dino : thePlayer.getCurrentSpecies().getDinosaurList()) {
+			DinosaurIDManager.getInstance().removeIdentifierFromObject(dino);
+		}		
+		
+		inGamePlayers.remove(thePlayer);
+
+		if (isRunning() == true && getInGamePlayersNumber() == 0) {
+			getLogger().info("Since a new player was deleted, let's stop the game");
+			stopGame();
+		} else {
+
+			changeState(GameState.WAITING_TURN_CONFIRMATION);
+		}
+
+	}
+	
+	public void passTurn(Player thePlayer)  throws IllegalArgumentException, PlayerNotInGameException, TurnNotOwnedByPlayerException {
+		
+		if (thePlayer == null) {
+			throw new IllegalArgumentException("The player cannot be null");
+		}
+
+		if (getCurrentPlayer() != thePlayer) {
+			throw new TurnNotOwnedByPlayerException("The player cannot confirm a turn that is not owned by him/her");
+		}
+		
+		if (inGamePlayers.contains(thePlayer) == false) {
+			throw new PlayerNotInGameException("The player is not in game");
+		}
+		
+		getLogger().info("Player "+thePlayer.getUsername()+" has passed the turn");
+		
+		changeState(GameState.WAITING_TURN_CONFIRMATION);
+	}
+	
+	public void confirmTurn(Player thePlayer) throws IllegalArgumentException, PlayerNotInGameException, TurnNotOwnedByPlayerException {
+		
+		if (thePlayer == null) {
+			throw new IllegalArgumentException("The player cannot be null");
+		}
+
+		if (getCurrentPlayer() != thePlayer) {
+			throw new TurnNotOwnedByPlayerException("The player cannot confirm a turn that is not owned by him/her");
+		}
+		
+		if (inGamePlayers.contains(thePlayer) == false) {
+			throw new PlayerNotInGameException("The player is not in game");
+		}
+		
+		getLogger().info("Player "+thePlayer.getUsername()+" has confirmed the turn");
+		changeState(GameState.TURN_EXECUTION);
+		
+	}
+	
+	private void performTurnCalculations(Player thePlayer) throws MaxSpeciesAgeExceededException {
+		
+		for (Dinosaur dino : thePlayer.getCurrentSpecies().getDinosaurList()) {
+			dino.setAge(dino.getAge()+1);
+			
+			if (dino.getAge() > dino.getAgeMax()) {
+				removeDinosaur(dino);
+			}
+			//FIXME Check if a dinosaur can die here! TEST
+		}
+
+		thePlayer.getCurrentSpecies().incrementTurn();
+
+	}
+	
+	private void swapCurrentPlayer() {
+
+		getLogger().info("Swapping current player");
+		if (getInGamePlayersNumber() == 0) {
+			getLogger().info("The number of player is zero. Setting to -1 the player index");
+			setCurrentPlayerIndex(-1);
+			return; //FIXME It is to be tested DEEP XD
+		}
+		
+		if (getInGamePlayersNumber() == 1) {
+			getLogger().info("The number of player is one. Setting to 0 the player index");
+			setCurrentPlayerIndex(0);
+		}
+		
+		getLogger().info("Performing turn calculations on the player species.");
+		try {
+			performTurnCalculations(getCurrentPlayer());
+		} catch (MaxSpeciesAgeExceededException e) {
+			//END OF THE PLAYER
+			getLogger().info("The species of the player has reached the maximum age. Removing the player");
+			removePlayer(getCurrentPlayer());
+		}
+
+		if (getCurrentPlayer().getCurrentSpecies().getCurrentTurn() > 1 && getCurrentPlayer().getCurrentSpecies().getDinosaurList().size() == 0) {
+			//END OF THE PLAYER
+			getLogger().info("The player has no more dinosaurs and this isn't the first turn of his/her species. Remove now the player");
+			removePlayer(getCurrentPlayer());
+			return;
+		}	
+		
+		setCurrentPlayerIndex((getCurrentPlayerIndex() + 1 ) % getInGamePlayersNumber());
+
+		Player thePlayer = getCurrentPlayer();
+		getLogger().info("The new current player is " + thePlayer.getUsername());
+
+		/* If it is the first time the player enters his game turn with his/her species its current 
+		 * species will have no dinosaur. Then create a dinosaur for that species and place randomly 
+		 * it in the map. 
+		 */
+		getLogger().info("Its current species size is: "+thePlayer.getCurrentSpecies().getSize());
+		//if (thePlayer.getCurrentSpecies().getSize() == 0) { BACKUP
+		if (thePlayer.getCurrentSpecies().getCurrentTurn() == 1) {
+			getLogger().info("Since is the first turn of a new player, create a new dinosaur and place it randomly in the map");
+			addDinosaur(thePlayer);
+		} else { /* This is not the first time the player enters the game */
+
+			for (Dinosaur dino :  thePlayer.getCurrentSpecies().getDinosaurList()) {
+				registerDinosaurInGame(dino);
+				Map.getInstance().placeDinosaur(dino, dino.getPosition());
+			}
+			//FIXME We have to replace all dinosaurs to theirs position!
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	private GameState getState() {
+		return state;
+	}
+	
+	public void changeState(GameState theState) throws IllegalStateException {
+		
+		getLogger().fine("Changing state");
+		GameState currentState = getState();
+		
+		switch (currentState)
+		{
+			case STOP: {
+				
+				if (theState == GameState.TURN_EXECUTION) {
+					IllegalStateException e = new IllegalStateException("The game status can go only from STOP to WAITING_TURN_CONFIRMATION");
+					getLogger().warning(StackTraceUtils.getThrowMessage(e));
+					throw e;
+				} else if (theState == GameState.STOP) {
+					getLogger().info("The game is already stopped");
+				} else {
+					getLogger().info("Changing from STOP to WAITING_TURN_CONFIRMATION");
+				
+					setGameStateWaitingForPlayerConfirmation();
+				}
+				
+				break;
+				
+			}
+			case WAITING_TURN_CONFIRMATION: {
+				
+				switch (theState)
+				{
+					case WAITING_TURN_CONFIRMATION: {
+						getLogger().info("Changing from WAITING_TURN_CONFIRMATION to WAITING_TURN_CONFIRMATION");
+						setGameStateWaitingForPlayerConfirmation();
+						break;
+					}
+					
+					case TURN_EXECUTION: {
+						getLogger().info("Changing from WAITING_TURN_CONFIRMATION to TURN_EXECUTION");
+						setGameStateTurnExecution();
+						break;
+					}
+					case STOP: {
+						getLogger().info("Changing from WAITING_TURN_CONFIRMATION to STOP");
+						setGameStateStopped();
+						break;
+					}
+				}
+				
+				break;
+			}
+			
+			case TURN_EXECUTION: {
+				
+				switch (theState)
+				{
+					case WAITING_TURN_CONFIRMATION: {
+						getLogger().info("Changing from TURN_EXECUTION to WAITING_TURN_CONFIRMATION");
+						setGameStateWaitingForPlayerConfirmation();
+						break;
+					}
+					case STOP: {
+						getLogger().info("Changing from TURN_EXECUTION to STOP");
+						setGameStateStopped();
+						break;
+					}
+					default: {
+						IllegalStateException e = new IllegalStateException("The game status can go only from TURN_EXECUTION to WAITING_TURN_CONFIRMATION or STOP");
+						getLogger().warning(StackTraceUtils.getThrowMessage(e));
+						throw e;
+					}
+				}
+				
+				break;
+			}
+		}
+	}
+
+	private void changeOperations() {
+		stopAllTimers();
+	}
+	
+	private void setGameStateTurnExecution() {
+		changeOperations();
+		getLogger().info("Now the game is waiting for a player to perform his/hers actions");
+		state = GameState.TURN_EXECUTION;
+		startTurnExecutionTimer();
+	}
+	
+	private void setGameStateStopped() {
+		changeOperations();
+		getLogger().info("Now the game is stopped");
+		state = GameState.STOP;
+		setCurrentPlayerIndex(-1);
+		
+		while (getInGamePlayersNumber() > 0) {
+			inGamePlayers.remove(0);
+		}
+		
+	}
+		
+	private void setGameStateWaitingForPlayerConfirmation() {
+		changeOperations();
+		swapCurrentPlayer();
+		notifyClients(); //ADDEDNOW
+		if (getInGamePlayersNumber() != 0)
+			getLogger().info("Now the game is waiting for the player "+getCurrentPlayer().getUsername()+" to confirm his/her turn");
+		
+		state = GameState.WAITING_TURN_CONFIRMATION;
+		startTurnConfirmationTimer();
+	}
+	
+	private void setupTimers() {
+		
+		turnConfirmationTimerTask = new TurnConfirmationTimerTask();
+		turnConfirmationTimer = new Timer();
+		turnConfirmationTimerIsRunning = false;
+		
+		turnExecutionTimerTask = new TurnExecutionTimerTask();
+		turnExecutionTimer = new Timer();
+		turnExecutionTimerIsRunning = false;
+		
+	}
+	
+	private void stopAllTimers() {
+		stopTurnExecutionTimer();
+		stopTurnConfirmationTimer();
+	}
+	
+	private void startTurnExecutionTimer() {
+		
+		if (turnExecutionTimerIsRunning== false) {
+			turnExecutionTimer.schedule(new TurnExecutionTimerTask(), TURN_EXECUTION_DELAY);
+			turnExecutionTimerIsRunning = true;
+		} else {
+			Error e = new Error("You have to stop the existing Turn Confirmation Timer before start another timer");
+			getLogger().warning(StackTraceUtils.getStackTrace(e));
+			throw e;
+		}
+	}
+	
+	private void startTurnConfirmationTimer() throws Error {
+		if (turnConfirmationTimerIsRunning == false) {
+			
+			if (timerForStartingGameAlreadyFired == false) {
+				timerForStartingGameAlreadyFired = true;
+				turnConfirmationTimer.schedule(new TurnConfirmationTimerTask(), 2000);
+			}
+			else {
+				turnConfirmationTimer.schedule(new TurnConfirmationTimerTask(), TURN_CONFIRMATION_DELAY);
+			}
+			turnConfirmationTimerIsRunning = true;
+		} else {
+			Error e = new Error("You have to stop the existing Turn Confirmation Timer before start another timer");
+			getLogger().warning(StackTraceUtils.getStackTrace(e));
+			throw e;
+		}
+	}
+	
+	private void stopTurnExecutionTimer() {
+		turnExecutionTimerIsRunning = false;
+		turnExecutionTimer.cancel();
+		turnExecutionTimer = new Timer();
+	}
+	
+	private void stopTurnConfirmationTimer() {
+		turnConfirmationTimerIsRunning = false;
+		turnConfirmationTimer.cancel();
+		turnConfirmationTimer = new Timer();
+	}
+	
+	void runTaskTurnConfirmationTimer() {
+
+		if (turnConfirmationTimerIsRunning == false)
+			return;
+		
+		getLogger().warning("END OF THE PLAYER TURN CONFIRMATION PERIOD.");
+		changeState(GameState.WAITING_TURN_CONFIRMATION);
+
+	}
+	
+	private void notifyClients() {
+		
+		Thread queryThread = new Thread() {
+			
+			public void run() {
+				
+				for (ClientHandler clientHandler : changeTurnListenersList) {
+					//getLogger().severe("Writing to the client: "+clientHandler.)
+					clientHandler.changeTurn(getCurrentPlayer().getUsername());
+				}
+			}
+			
+		};
+		queryThread.start();
+	}
+	
+	void runTaskTurnExecutionTimer() {
+		
+		if (turnExecutionTimerIsRunning == false)
+			return;
+		
+		getLogger().warning("END OF THE PLAYER TURN.");
+		changeState(GameState.WAITING_TURN_CONFIRMATION);
+		
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* {@inheritDoc}
+	 * @see logging.Loggable#setupLogger()
+	 * 
+	 */
+	@Override
+	public void setupLogger() {
+		logger = Logger.getLogger("server.gameplay");
+		logger.setParent(Logger.getLogger("server.main"));
+		logger.setLevel(Level.ALL);
+	}
+
+	/* {@inheritDoc}
+	 * @see logging.Loggable#getLogger()
+	 * 
+	 */
+	@Override
+	public Logger getLogger() {
+		// TODO Auto-generated method stub
+		return logger;
+	}
+
+	public void setupJdkLoggerHandler() {
+		ServerMainWindow.addNewLoggerTextPane(getLogger(), "Gameplay");	
+	}
+	
+}
+
+enum GameState {
+	STOP, WAITING_TURN_CONFIRMATION, TURN_EXECUTION; 
+}
+
+
+final class TurnExecutionTimerTask extends TimerTask {
+	public void run() {
+		Game.getInstance().runTaskTurnExecutionTimer();
+	}
+}
+
+final class TurnConfirmationTimerTask extends TimerTask {
+	public void run() {
+		Game.getInstance().runTaskTurnConfirmationTimer();
+	}
+}

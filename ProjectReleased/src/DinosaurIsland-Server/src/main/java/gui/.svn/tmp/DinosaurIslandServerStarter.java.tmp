@@ -1,0 +1,87 @@
+package gui;
+
+import java.awt.EventQueue;
+import java.util.Locale;
+import java.util.logging.Logger;
+
+import javax.swing.UIManager;
+
+import communication.Server;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * Description of the type.
+ * This state information includes:
+ * <ul>
+ * <li>Element 1
+ * <li>Element 2
+ * <li>The current element implementation 
+ *     (see <a href="#setXORMode">setXORMode</a>)
+ * </ul>
+ * </p>
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * Other description in a separate paragraph.
+ * </p>
+ *
+ * <b>Collaborators</b><br>
+ * <p>
+ * Here write about classes 
+ * </p>
+ * 
+ * @author	RAA
+ * @version 1.6
+ * @since	May 22, 2011@11:57:22 AM
+ *
+ */
+public class DinosaurIslandServerStarter {
+
+	/** 
+	 * The method main bla bla bla...
+	 * Bla bla bla... as the indicated {@link NameClass1} bla bla bla...
+	 * It is useful also insert some {@code arg1} references to the args
+	 * while explaining.
+	 *
+	 * @param args          
+	 *
+	 * @see		NameClass1 (remove the line if there is no need of it)
+	 * @see		NameClass2 (remove the line if there is no need of it)
+	 *  
+	 * @since	May 22, 2011@11:57:22 AM
+	 * 
+	 */
+	public static void main(String[] args) {
+		
+
+        Thread t = new Thread("my non EDT thread") {
+            public void run() {
+                //my work
+            	Server.getInstance();
+            }
+
+        };
+        t.start();
+		
+		Locale.setDefault(Locale.ENGLISH);
+	
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					try {
+					    UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+					} catch (Throwable e) {
+						Logger.getLogger("server.main").config("Unable to set the nimbus look and feel");
+					}
+					ServerMainWindow.getInstance();
+					
+				} 
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+}

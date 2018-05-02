@@ -1,0 +1,216 @@
+/**
+ * Copyright (c) 2011 RAAXXO
+ * 
+ * This file is part of Dinosaur Island.
+ * 
+ */
+package communication;
+
+import java.io.IOException;
+import java.net.ConnectException;
+import java.rmi.RemoteException;
+import java.util.concurrent.TimeoutException;
+
+import javax.naming.AuthenticationException;
+
+import logging.Loggable;
+import util.Position;
+import beans.DinosaurStatus;
+import beans.DinosaursList;
+import beans.Highscore;
+import beans.LocalView;
+import beans.MainMap;
+import beans.NewBornID;
+import beans.PlayersList;
+import exceptions.FightLostException;
+import exceptions.FightWonException;
+import exceptions.GameAccessDeniedException;
+import exceptions.GameLeavingDeniedException;
+import exceptions.IdentifierNotPresentException;
+import exceptions.InvalidDestinationException;
+import exceptions.InvalidDinosaurIDException;
+import exceptions.InvalidTokenException;
+import exceptions.MaxInGamePlayersExceededException;
+import exceptions.MaxMovesLimitException;
+import exceptions.MaxSizeReachedException;
+import exceptions.NameAlreadyTakenException;
+import exceptions.NegativeResponseException;
+import exceptions.PlayerNotInGameException;
+import exceptions.SpeciesAlreadyCreatedException;
+import exceptions.SpeciesIsFullException;
+import exceptions.SpeciesNotCreatedException;
+import exceptions.StarvationDeathException;
+import exceptions.TurnNotOwnedByPlayerException;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * Description of the type.
+ * This state information includes:
+ * <ul>
+ * <li>Element 1
+ * <li>Element 2
+ * <li>The current element implementation 
+ *     (see <a href="#setXORMode">setXORMode</a>)
+ * </ul>
+ * </p>
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * Other description in a separate paragraph.
+ * </p>
+ *
+ * <b>Collaborators</b><br>
+ * <p>
+ * Here write about classes 
+ * </p>
+ * 
+ * @author	RAA
+ * @version 1.0
+ * @since	May 29, 2011@11:24:12 PM
+ *
+ */
+
+public abstract class ServerHandler extends Thread	implements ClientInterface, Loggable {
+
+	protected boolean changingTurn = false;
+	protected String theCurrentUserPlaying;
+	
+	/**
+	 * @return the theCurrentUserPlaying
+	 */
+	public String getTheCurrentUserPlaying() {
+		return theCurrentUserPlaying;
+	}
+
+	/**
+	 * @param theCurrentUserPlaying the theCurrentUserPlaying to set
+	 */
+	public void setTheCurrentUserPlaying(String theCurrentUserPlaying) {
+		this.theCurrentUserPlaying = theCurrentUserPlaying;
+	}
+
+	/**
+	 * @return the changingTurn
+	 */
+	public boolean isChangingTurn() {
+		return changingTurn;
+	}
+
+	/**
+	 * @param changingTurn the changingTurn to set
+	 */
+	public void setChangingTurn(boolean changingTurn) {
+		this.changingTurn = changingTurn;
+	}
+
+	protected abstract void connect() 
+		throws RemoteException, IOException;
+
+	public abstract void disconnect();
+
+	public abstract void login(String theUsername, String thePassword)  
+		throws RemoteException, ConnectException,
+		TimeoutException, AuthenticationException,
+		IllegalArgumentException ;
+
+	public abstract void register(String theUsername, String thePassword) 
+		throws RemoteException, ConnectException, 
+		TimeoutException, NameAlreadyTakenException;
+
+	protected abstract void handleServerDisconnection(IOException theException) 
+		throws IOException;
+
+	public abstract void enterGame() 
+	throws RemoteException, TimeoutException, 
+	MaxInGamePlayersExceededException, SpeciesNotCreatedException, 
+	InvalidTokenException, GameAccessDeniedException;
+
+	public abstract void leaveGame() 
+	throws RemoteException, TimeoutException, 
+	PlayerNotInGameException, InvalidTokenException, GameLeavingDeniedException;
+
+	public abstract void logout() 
+	throws RemoteException, TimeoutException, 
+	InvalidTokenException;
+
+	public abstract void createSpecies(String theSpeciesName, String theSpeciesType) 
+	throws RemoteException, TimeoutException, 
+	NameAlreadyTakenException, SpeciesAlreadyCreatedException, 
+	InvalidTokenException;
+	
+	public abstract void moveDinosaur(String theDinosaurID, Position theDestination)
+	throws RemoteException, TimeoutException,
+	IdentifierNotPresentException, StarvationDeathException, 
+	InvalidDestinationException, PlayerNotInGameException, 
+	TurnNotOwnedByPlayerException, MaxMovesLimitException,
+	FightLostException, FightWonException;
+	
+	public abstract void growDinosaur(String theDinosaurID)
+	throws  RemoteException, TimeoutException,
+	InvalidDinosaurIDException, MaxSizeReachedException,
+	PlayerNotInGameException, TurnNotOwnedByPlayerException,
+	MaxMovesLimitException, InvalidTokenException, 
+	StarvationDeathException;
+
+	public abstract NewBornID layEgg(String theDinosaurID)
+	throws  RemoteException, TimeoutException,
+	InvalidDinosaurIDException, SpeciesIsFullException,
+	PlayerNotInGameException, TurnNotOwnedByPlayerException,
+	MaxMovesLimitException, InvalidTokenException;
+	
+	public abstract PlayersList getInGamePlayersList() 
+	throws RemoteException, TimeoutException, 
+	InvalidTokenException, NegativeResponseException;
+	
+	public abstract Highscore getHighscore() 
+	throws RemoteException, TimeoutException, 
+	InvalidTokenException, NegativeResponseException;
+
+	public abstract MainMap getMainMap()
+	throws RemoteException, TimeoutException, 
+	InvalidTokenException, 
+	PlayerNotInGameException, NegativeResponseException;
+
+	public abstract LocalView getLocalView(String theDinosaurID)
+	throws RemoteException, TimeoutException, 
+	InvalidDinosaurIDException, InvalidTokenException, 
+	PlayerNotInGameException, NegativeResponseException;
+	
+	public abstract DinosaurStatus getDinosaurStatus(String theDinosaurID)
+	throws RemoteException, TimeoutException, 
+	InvalidDinosaurIDException, InvalidTokenException, 
+	PlayerNotInGameException, NegativeResponseException;
+
+
+	public abstract DinosaursList getDinosaursInGameList() 
+	throws RemoteException, TimeoutException, 
+	InvalidTokenException, NegativeResponseException, PlayerNotInGameException;
+
+	public abstract void  confirmTurn() 
+	throws RemoteException, TimeoutException, 
+	InvalidTokenException,
+	NegativeResponseException, PlayerNotInGameException;
+
+	public abstract void passTurn() 
+	throws RemoteException, TimeoutException,
+	InvalidTokenException,
+	NegativeResponseException, PlayerNotInGameException;
+
+
+	/* {@inheritDoc}
+	 * @see communication.ClientInterface#callback(java.lang.String)
+	 * 
+	 */
+	@Override
+	public abstract void callback(String theString) throws RemoteException;
+	
+	public void handleChangeTurn(String theCurrentPlayerUsername) throws RemoteException {
+		System.out.println("Received a change turn! Next player is: "+theCurrentPlayerUsername);
+		setTheCurrentUserPlaying(theCurrentPlayerUsername);
+		setChangingTurn(true);
+		
+		//GameManager.getInstance().handleChangeTurn(theCurrentPlayerUsername);
+	}
+
+}

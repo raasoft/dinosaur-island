@@ -1,0 +1,27 @@
+#surefire
+#Tue May 17 10:06:13 CEST 2011
+testClassesDirectory=/home/ale/Dropbox/PoliMi/3\u00B0 Anno/Ingegneria Software/eclipse.workspace/DinosaurIsland-Communication/target/test-classes
+classPathUrl.2=/home/ale/.m2/repository/junit/junit/4.8.2/junit-4.8.2.jar
+useManifestOnlyJar=true
+classPathUrl.1=/home/ale/Dropbox/PoliMi/3\u00B0 Anno/Ingegneria Software/eclipse.workspace/DinosaurIsland-Communication/target/classes
+reportsDirectory=/home/ale/Dropbox/PoliMi/3\u00B0 Anno/Ingegneria Software/eclipse.workspace/DinosaurIsland-Communication/target/surefire-reports
+classPathUrl.0=/home/ale/Dropbox/PoliMi/3\u00B0 Anno/Ingegneria Software/eclipse.workspace/DinosaurIsland-Communication/target/test-classes
+dirscanner.0=directoryScannerOptions
+providerConfiguration=org.apache.maven.surefire.junit4.JUnit4Provider
+testSuiteDefinitionTestSourceDirectory=/home/ale/Dropbox/PoliMi/3\u00B0 Anno/Ingegneria Software/eclipse.workspace/DinosaurIsland-Communication/src/test/java
+surefireClassPathUrl.1=/home/ale/.m2/repository/org/apache/maven/surefire/surefire-api/2.7.1/surefire-api-2.7.1.jar
+surefireClassPathUrl.0=/home/ale/.m2/repository/org/apache/maven/surefire/surefire-junit4/2.7.1/surefire-junit4-2.7.1.jar
+report.2=org.apache.maven.surefire.report.XMLReporter
+useSystemClassLoader=true
+report.1=org.apache.maven.surefire.report.BriefFileReporter
+report.0=org.apache.maven.surefire.report.ForkingConsoleReporter
+excludes0=**/*$*
+isTrimStackTrace=true
+dirscanner.0.params=/home/ale/Dropbox/PoliMi/3\u00B0 Anno/Ingegneria Software/eclipse.workspace/DinosaurIsland-Communication/target/test-classes|[**/Test*.java, **/*Test.java, **/*TestCase.java]|[**/*$*]
+enableAssertions=true
+includes2=**/*TestCase.java
+failIfNoTests=false
+includes1=**/*Test.java
+dirscanner.0.types=java.io.File|java.util.ArrayList|java.util.ArrayList
+includes0=**/Test*.java
+childDelegation=false

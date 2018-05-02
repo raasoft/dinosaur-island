@@ -1,0 +1,595 @@
+package communication;
+
+import java.io.IOException;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+
+import javax.naming.AuthenticationException;
+
+import logging.Loggable;
+import util.Position;
+import util.StackTraceUtils;
+import beans.DinosaurStatus;
+import beans.DinosaursList;
+import beans.Highscore;
+import beans.LocalView;
+import beans.MainMap;
+import beans.NewBornID;
+import beans.PlayersList;
+
+import communication.identifiers.TokenManager;
+
+import exceptions.FightLostException;
+import exceptions.FightWonException;
+import exceptions.IdentifierNotPresentException;
+import exceptions.InvalidDestinationException;
+import exceptions.InvalidDinosaurIDException;
+import exceptions.InvalidTokenException;
+import exceptions.MaxInGamePlayersExceededException;
+import exceptions.MaxMovesLimitException;
+import exceptions.MaxSizeReachedException;
+import exceptions.NameAlreadyTakenException;
+import exceptions.NegativeResponseException;
+import exceptions.NotFoundException;
+import exceptions.PasswordMismatchException;
+import exceptions.PlayerAlreadyInGameException;
+import exceptions.PlayerNotInGameException;
+import exceptions.SpeciesAlreadyCreatedException;
+import exceptions.SpeciesNotCreatedException;
+import exceptions.StarvationDeathException;
+import exceptions.TurnNotOwnedByPlayerException;
+import gameplay.Dinosaur;
+import gameplay.DinosaurIDManager;
+import gameplay.Game;
+import gameplay.Player;
+import gameplay.SpeciesCarnivorousFactory;
+import gameplay.SpeciesFactory;
+import gameplay.SpeciesHerbivoreFactory;
+import gameplay.highscore.HighscoreManager;
+import gameplay.map.Map;
+import gui.ServerMainWindow;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * The ClientHandler class is an abstract class that handle the communication
+ * with the client. Most of its methods are to be overridden in its subclasses,
+ * since them define the communication type (i.e. the subclass
+ * {@link SocketClientHandler} handles the socket communication with the client,
+ * while the {@link RMIClientHandler} handles the RMI communication with the
+ * client).
+ * </p>
+ * 
+ * <b>Responsibilities</b><br>
+ * <p>
+ * This class must give the server the possibility to accomplish the clients'
+ * requests and give responses regardless the effective connection method
+ * (socket or RMI).<br>
+ * For this reason, it must define the legal requests that the client can
+ * perform and must store some information about the server status or
+ * notifications.
+ * </p>
+ * 
+ * <b>Collaborators</b><br>
+ * <p>
+ * This class is called very often by the server GUI, so its collaborators are
+ * {@link ServerMainWindow} and in general by all the classes that needs to
+ * communicate with the client regardless the type of communication used.
+ * </p>
+ * 
+ * @author RAA
+ * @version 1.0
+ */
+public abstract class ClientHandler
+		implements
+			Runnable,
+			ServerInterface,
+			Loggable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	transient protected Thread serverThread;
+	/*
+	 * This is the token assigned to the player that is being served by the
+	 * server
+	 */
+	protected String playerToken = null;
+	protected boolean isRunning = true;
+	protected int loggedPlayersNumber;
+
+	/**
+	 * @return the serverThread
+	 */
+	Thread getThread() {
+		return serverThread;
+	}
+
+	/**
+	 * @param serverThread
+	 *            the serverThread to set
+	 */
+	void setThread(Thread theServerThread) {
+		serverThread = theServerThread;
+	}
+
+	/**
+	 * @return the playerToken
+	 */
+	public String getPlayerToken() {
+		return playerToken;
+	}
+
+	/**
+	 * @param playerToken
+	 *            the playerToken to set
+	 */
+	protected void setPlayerToken(String thePlayerToken) {
+		playerToken = thePlayerToken;
+	}
+
+	public abstract void run();
+	public abstract void closeDown();
+	protected abstract void handleClientDisconnection(IOException theException);
+	public abstract void changeTurn(String theUsername);
+
+	protected void checkTokenConsinstency(String theToken)
+			throws InvalidTokenException, IllegalArgumentException {
+
+		if (getPlayerToken() == null) {
+			throw new IllegalArgumentException("The client has not a token yet");
+		}
+
+		if (!getPlayerToken().equals(theToken)) {
+			InvalidTokenException ex = new InvalidTokenException(
+					"The token given is not the current player's token");
+			getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+			throw ex;
+		}
+	}
+
+	protected void checkDinosaurIDConsinstency(String theDinosaurID)
+			throws InvalidDinosaurIDException, IllegalArgumentException {
+
+		if (theDinosaurID == null) {
+			IllegalArgumentException ex = new IllegalArgumentException(
+					"The dinosaur id can't be null");
+			getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+			throw ex;
+		}
+
+		if (DinosaurIDManager.getInstance().getObject(theDinosaurID) == null) {
+			InvalidDinosaurIDException ex = new InvalidDinosaurIDException(
+					"The dinosaur id given does not correspond to any dinosaur");
+			getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+			throw ex;
+		}
+	}
+
+	public void createUser(String theUsername, String thePassword)
+			throws RemoteException, IllegalArgumentException,
+			NameAlreadyTakenException {
+
+		if ((SocketManager.getInstance().getClientHandlerNumber() + RMIManager
+				.getInstance().getClientHandlerNumber()) > (Server
+				.getInstance().getConnectionsMax())) {
+			RemoteException e = new RemoteException(
+					"Max connections limit reached");
+			handleClientDisconnection(e);
+			throw e;
+		}
+
+		/*
+		 * This part is commented for better interoperability but it makes sense
+		 * to close the handlers after the registration to free resources
+		 */
+		// SocketManager.getInstance().requestClientHandlerClosure(this);
+		// RMIManager.getInstance().requestClientHandlerClosure(this);
+
+		PlayerManager.addPlayer(theUsername, thePassword);
+
+	}
+
+	public String loginPlayer(String theUsername, String thePassword)
+			throws RemoteException, AuthenticationException,
+			NullPointerException, PasswordMismatchException,
+			IllegalArgumentException, NotFoundException {
+
+		if ((SocketManager.getInstance().getClientHandlerNumber() + RMIManager
+				.getInstance().getClientHandlerNumber()) > (Server
+				.getInstance().getConnectionsMax())) {
+			throw new RemoteException("Max connections limit reached");
+		}
+		String token = PlayerManager.getInstance().loginPlayer(theUsername,
+				thePassword);
+		setPlayerToken(token);
+		return token;
+	}
+
+	public void canEnterGame(String theToken) throws RemoteException,
+			InvalidTokenException, IllegalArgumentException,
+			PlayerAlreadyInGameException, SpeciesNotCreatedException,
+			MaxInGamePlayersExceededException {
+
+		checkTokenConsinstency(theToken);
+
+		Player player = TokenManager.getInstance().getObject(theToken);
+		if (player == null) {
+			throw new InvalidTokenException("Invalid Token");
+		} else {
+
+			// Game.getInstance().addChangeTurnListener(player, this);
+			try {
+				Game.getInstance().canAddPlayer(player);
+				// ServerMainWindow.getInstance().addInGamePlayersValue();
+			} catch (IllegalArgumentException e) {
+				// Game.getInstance().removeChangeTurnListener(player);
+				throw e;
+			} catch (SpeciesNotCreatedException e) {
+				// Game.getInstance().removeChangeTurnListener(player);
+				throw e;
+			} catch (MaxInGamePlayersExceededException e) {
+				// Game.getInstance().removeChangeTurnListener(player);
+				throw e;
+			}
+		}
+	}
+
+	public void enterGame(String theToken) throws RemoteException,
+			InvalidTokenException, IllegalArgumentException,
+			PlayerAlreadyInGameException, SpeciesNotCreatedException,
+			MaxInGamePlayersExceededException {
+
+		checkTokenConsinstency(theToken);
+
+		Player player = TokenManager.getInstance().getObject(theToken);
+		if (player == null) {
+			throw new InvalidTokenException("Invalid Token");
+		} else {
+
+			Game.getInstance().addChangeTurnListener(player, this);
+			try {
+				Game.getInstance().addPlayer(player);
+				ServerMainWindow.getInstance().updateInGamePlayersValue();
+			} catch (IllegalArgumentException e) {
+				Game.getInstance().removeChangeTurnListener(player);
+				throw e;
+			} catch (SpeciesNotCreatedException e) {
+				Game.getInstance().removeChangeTurnListener(player);
+				throw e;
+			} catch (MaxInGamePlayersExceededException e) {
+				Game.getInstance().removeChangeTurnListener(player);
+				throw e;
+			}
+		}
+	}
+
+	public void logout(String theToken) throws RemoteException,
+			InvalidTokenException, IllegalArgumentException {
+
+		checkTokenConsinstency(theToken);
+
+		Player thePlayer = TokenManager.getInstance().getObject(theToken);
+		try {
+			Game.getInstance().removePlayer(thePlayer);
+			ServerMainWindow.getInstance().updateInGamePlayersValue();
+			getLogger()
+					.info("Successfully removed the player from in game players list!");
+		} catch (PlayerNotInGameException e) {
+			getLogger().info("The player is not in game!");
+		}
+
+		PlayerManager.getInstance().logout(theToken);
+		ServerMainWindow.getInstance().updateLoggedPlayersValue();
+		setPlayerToken(null);
+		SocketManager.getInstance().requestClientHandlerClosure(this);
+		RMIManager.getInstance().requestClientHandlerClosure(this);
+	}
+
+	public void createSpecies(String theToken, String theSpeciesName,
+			String theSpeciesType) throws RemoteException,
+			IllegalArgumentException, NameAlreadyTakenException,
+			SpeciesAlreadyCreatedException, InvalidTokenException {
+
+		checkTokenConsinstency(theToken);
+
+		Player player;
+
+		try {
+			player = TokenManager.getInstance().getObject(theToken);
+		} catch (NotFoundException e) {
+			InvalidTokenException ex = new InvalidTokenException(
+					"Invalid Token");
+			getLogger().severe(StackTraceUtils.getThrowMessage(ex));
+			throw ex;
+		}
+
+		SpeciesFactory sf;
+		if (theSpeciesType.equals("c")) {
+			sf = SpeciesCarnivorousFactory.getInstance();
+		} else {
+			sf = SpeciesHerbivoreFactory.getInstance();
+		}
+
+		player.createCurrentSpecies(sf, theSpeciesName);
+	}
+
+	public PlayersList getInGamePlayersList(String theToken)
+			throws RemoteException, InvalidTokenException {
+
+		checkTokenConsinstency(theToken);
+
+		ArrayList<String> playersStringList = new ArrayList<String>();
+
+		for (Player player : Game.getInstance().getInGamePlayers()) {
+			playersStringList.add(player.getUsername());
+		}
+
+		PlayersList playersInGameList = new PlayersList(playersStringList);
+
+		return playersInGameList;
+	}
+
+	public Highscore getHighscore(String theToken) throws RemoteException,
+			InvalidTokenException {
+
+		checkTokenConsinstency(theToken);
+
+		return HighscoreManager.getInstance().getSortedHighscore();
+
+	}
+
+	/*
+	 * {@inheritDoc}
+	 * 
+	 * @see communication.ServerInterface#leaveGame(java.lang.String)
+	 */
+	@Override
+	public void leaveGame(String theToken) throws RemoteException,
+			InvalidTokenException, PlayerNotInGameException,
+			IllegalArgumentException {
+
+		checkTokenConsinstency(theToken);
+
+		Player player = TokenManager.getInstance().getObject(theToken);
+		if (player == null) {
+			throw new InvalidTokenException("Invalid Token");
+		} else {
+			Game.getInstance().removePlayer(player);
+			ServerMainWindow.getInstance().updateInGamePlayersValue();
+		}
+
+	}
+
+	/*
+	 * {@inheritDoc}
+	 * 
+	 * @see communication.ServerInterface#getMainMap(java.lang.String)
+	 */
+	@Override
+	public MainMap getMainMap(String theToken) throws RemoteException,
+			InvalidTokenException, PlayerNotInGameException,
+			NegativeResponseException {
+
+		checkTokenConsinstency(theToken);
+
+		Player thePlayer = TokenManager.getInstance().getObject(theToken);
+
+		Game.getInstance().checkPlayerInGameConsistency(thePlayer);
+
+		MainMap mainMap = null;
+
+		String theMainMapString = null;
+
+		try {
+			theMainMapString = Map.getInstance().getMainMap(thePlayer);
+		} catch (Exception e) {
+			getLogger().severe("UNCAUGHT EXCEPTION");
+			getLogger().warning(StackTraceUtils.getThrowMessage(e));
+
+		}
+
+		if (theMainMapString == null) {
+			NegativeResponseException e = new NegativeResponseException(
+					"The main map cannot be obtained: the getMainMap returns a null value");
+			getLogger().warning(StackTraceUtils.getThrowMessage(e));
+			throw e;
+		}
+
+		try {
+			mainMap = new MainMap(theMainMapString);
+		} catch (NullPointerException e) {
+			NegativeResponseException ex = new NegativeResponseException(
+					"The main map cannot be obtained: it is not created yet");
+			getLogger().warning(StackTraceUtils.getThrowMessage(ex));
+			throw ex;
+
+		}
+
+		return mainMap;
+	}
+
+	public LocalView getLocalView(String theToken, String theDinosaurID)
+			throws RemoteException, InvalidTokenException,
+			InvalidDinosaurIDException, PlayerNotInGameException,
+			NegativeResponseException {
+
+		checkTokenConsinstency(theToken);
+		checkDinosaurIDConsinstency(theDinosaurID);
+
+		Player thePlayer = TokenManager.getInstance().getObject(theToken);
+		Game.getInstance().checkPlayerInGameConsistency(thePlayer);
+
+		Dinosaur theDinosaur = DinosaurIDManager.getInstance().getObject(
+				theDinosaurID);
+
+		LocalView localView = null;
+		try {
+			localView = new LocalView(Map.getInstance().getLocalView(
+					theDinosaur));
+		} catch (NullPointerException e) {
+			throw new NegativeResponseException(
+					"The local view cannot be obtained: it is not created yet");
+		}
+
+		return localView;
+	}
+
+	public DinosaurStatus getDinosaurStatus(String theToken,
+			String theDinosaurID) throws RemoteException,
+			InvalidTokenException, InvalidDinosaurIDException,
+			PlayerNotInGameException, NegativeResponseException {
+
+		checkTokenConsinstency(theToken);
+		checkDinosaurIDConsinstency(theDinosaurID);
+
+		Player thePlayer = TokenManager.getInstance().getObject(theToken);
+		Game.getInstance().checkPlayerInGameConsistency(thePlayer);
+
+		Dinosaur theDinosaur = DinosaurIDManager.getInstance().getObject(
+				theDinosaurID);
+
+		DinosaurStatus dinosaurStatus = null;
+		dinosaurStatus = Game.getInstance().getDinosaurStatus(thePlayer,
+				theDinosaur);
+
+		return dinosaurStatus;
+	}
+
+	public DinosaursList getInGameDinosaursList(String theToken)
+			throws RemoteException, InvalidTokenException,
+			PlayerNotInGameException {
+
+		checkTokenConsinstency(theToken);
+
+		Player thePlayer = TokenManager.getInstance().getObject(theToken);
+		Game.getInstance().checkPlayerInGameConsistency(thePlayer);
+
+		ArrayList<String> dinosaursStringList = new ArrayList<String>();
+
+		for (Dinosaur dino : thePlayer.getCurrentSpecies().getDinosaurList()) {
+			dinosaursStringList.add(DinosaurIDManager.getInstance()
+					.getIdentifier(dino));
+		}
+
+		DinosaursList dinosaursList = new DinosaursList(dinosaursStringList);
+
+		return dinosaursList;
+	}
+
+	public void moveDinosaur(String theToken, String theDinosaurID,
+			Position theDestination) throws RemoteException,
+			IdentifierNotPresentException, InvalidDestinationException,
+			MaxMovesLimitException, StarvationDeathException,
+			TurnNotOwnedByPlayerException, PlayerNotInGameException,
+			FightWonException, FightLostException {
+
+		checkTokenConsinstency(theToken);
+		checkDinosaurIDConsinstency(theDinosaurID);
+
+		Dinosaur theDinosaur = DinosaurIDManager.getInstance().getObject(
+				theDinosaurID);
+
+		Game.getInstance().moveDinosaur(theDinosaur, theDestination);
+
+	}
+
+	public void growDinosaur(String theToken, String theDinosaurID)
+			throws InvalidDinosaurIDException, MaxSizeReachedException,
+			PlayerNotInGameException, TurnNotOwnedByPlayerException,
+			MaxMovesLimitException, RemoteException, StarvationDeathException {
+
+		checkTokenConsinstency(theToken);
+		checkDinosaurIDConsinstency(theDinosaurID);
+
+		Dinosaur theDinosaur = DinosaurIDManager.getInstance().getObject(
+				theDinosaurID);
+
+		Game.getInstance().growDinosaur(theDinosaur);
+	}
+
+	public NewBornID layEgg(String theToken, String theDinosaurID)
+			throws InvalidDinosaurIDException, MaxSizeReachedException,
+			PlayerNotInGameException, TurnNotOwnedByPlayerException,
+			MaxMovesLimitException, RemoteException {
+
+		checkTokenConsinstency(theToken);
+		checkDinosaurIDConsinstency(theDinosaurID);
+
+		Dinosaur theDinosaur = DinosaurIDManager.getInstance().getObject(
+				theDinosaurID);
+
+		NewBornID newBornID = null;
+		newBornID = Game.getInstance().layEgg(theDinosaur);
+
+		return newBornID;
+	}
+
+	public void confirmTurn(String theToken) throws RemoteException,
+			InvalidTokenException, PlayerNotInGameException,
+			TurnNotOwnedByPlayerException, NegativeResponseException {
+
+		checkTokenConsinstency(theToken);
+
+		Player thePlayer = TokenManager.getInstance().getObject(theToken);
+		Game.getInstance().checkPlayerInGameConsistency(thePlayer);
+
+		try {
+			Game.getInstance().confirmTurn(thePlayer);
+		} catch (IllegalArgumentException e) {
+			NegativeResponseException ex = new NegativeResponseException(
+					"The player can't be null");
+			getLogger().warning(StackTraceUtils.getStackTrace(ex));
+			throw ex;
+		}
+
+		return;
+
+	}
+
+	public void canPassTurn(String theToken) throws RemoteException,
+			InvalidTokenException, PlayerNotInGameException,
+			TurnNotOwnedByPlayerException, NegativeResponseException {
+
+		checkTokenConsinstency(theToken);
+
+		Player thePlayer = TokenManager.getInstance().getObject(theToken);
+		Game.getInstance().checkPlayerInGameConsistency(thePlayer);
+
+		try {
+			Game.getInstance().canPassTurn(thePlayer);
+		} catch (IllegalArgumentException e) {
+			NegativeResponseException ex = new NegativeResponseException(
+					"The player can't be null");
+			getLogger().warning(StackTraceUtils.getStackTrace(ex));
+			throw ex;
+		}
+
+		return;
+	}
+
+	public void passTurn(String theToken) throws RemoteException,
+			InvalidTokenException, PlayerNotInGameException,
+			TurnNotOwnedByPlayerException, NegativeResponseException {
+
+		checkTokenConsinstency(theToken);
+
+		Player thePlayer = TokenManager.getInstance().getObject(theToken);
+		Game.getInstance().checkPlayerInGameConsistency(thePlayer);
+
+		try {
+			Game.getInstance().passTurn(thePlayer);
+		} catch (IllegalArgumentException e) {
+			NegativeResponseException ex = new NegativeResponseException(
+					"The player can't be null");
+			getLogger().warning(StackTraceUtils.getStackTrace(ex));
+			throw ex;
+		}
+
+		return;
+
+	}
+
+}

@@ -1,0 +1,357 @@
+/**
+ * Copyright (c) 2011 RAAXXO
+ * 
+ * This file is part of Dinosaur Island.
+ * 
+ */
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.rmi.RemoteException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeoutException;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextPane;
+import javax.swing.border.TitledBorder;
+
+import beans.PlayersList;
+
+import communication.Client;
+
+import exceptions.GameAccessDeniedException;
+import exceptions.IllegalResponseException;
+import exceptions.InvalidTokenException;
+import exceptions.MaxInGamePlayersExceededException;
+import exceptions.NegativeResponseException;
+import exceptions.SpeciesNotCreatedException;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * Description of the type.
+ * This state information includes:
+ * <ul>
+ * <li>Element 1
+ * <li>Element 2
+ * <li>The current element implementation 
+ *     (see <a href="#setXORMode">setXORMode</a>)
+ * </ul>
+ * </p>
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * Other description in a separate paragraph.
+ * </p>
+ *
+ * <b>Collaborators</b><br>
+ * <p>
+ * Here write about classes 
+ * </p>
+ * 
+ * @author	AXXO
+ * @version 1.0
+ * @since	Jun 3, 2011@12:04:46 PM
+ *
+ */
+public class WaitingRoomWindow {
+
+	private JFrame frameWaitingRoom;
+	private HighscoreAndPlayerListPolling pollingTask;
+	private JTextPane textPanePlayers;
+
+	public JFrame getFrameWaitingRoom() {
+		return frameWaitingRoom;
+	}
+
+	/**
+	 * Create the application.
+	 */
+	public WaitingRoomWindow() {
+		initialize();
+	}
+	
+	void updatePlayersList(PlayersList playersList) {
+		String list = "Players No: "+playersList.getPlayersNumber()+"\n";
+		
+		for (String str : playersList.getPlayers()) {
+			list = list + "Pl: #" + str + "#\n";
+		}
+		
+		textPanePlayers.setText(list);
+	}
+
+	/**
+	 * Initialize the contents of the frame.
+	 */
+	private void initialize() {
+		
+		Timer timer;
+        timer = new Timer();
+        pollingTask = new HighscoreAndPlayerListPolling(this);
+        timer.scheduleAtFixedRate(pollingTask, 500, 5000);
+		
+		frameWaitingRoom = new JFrame();
+		
+		frameWaitingRoom.setUndecorated(false);
+		frameWaitingRoom.setResizable(true);
+		frameWaitingRoom.setTitle(" Waiting Room for user "+Client.getUsername()+" - Dinosaur Island");
+		frameWaitingRoom.setBounds(100, 100, 1024, 600);
+		frameWaitingRoom.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frameWaitingRoom.getContentPane().setLayout(new BorderLayout(0, 0));
+		
+		JPanel panelTop = new JPanel();
+		frameWaitingRoom.getContentPane().add(panelTop, BorderLayout.CENTER);
+		panelTop.setLayout(new BoxLayout(panelTop, BoxLayout.X_AXIS));
+		
+		JSplitPane splitPaneWaitingRoom = new JSplitPane();
+		splitPaneWaitingRoom.setEnabled(false);
+		splitPaneWaitingRoom.setBorder(null);
+		panelTop.add(splitPaneWaitingRoom);
+		
+		JPanel panelScoreboard = new JPanel();
+		splitPaneWaitingRoom.setLeftComponent(panelScoreboard);
+		panelScoreboard.setBorder(new TitledBorder(null, "Scoreboard", TitledBorder.LEFT, TitledBorder.TOP, null, new Color(59, 59, 59)));
+		panelScoreboard.setLayout(new GridLayout(0, 1, 0, 0));
+		
+		JScrollPane scrollPaneScoreboard = new JScrollPane();
+		panelScoreboard.add(scrollPaneScoreboard);
+		
+		JTextPane textPaneScoreboard = new JTextPane();
+		textPaneScoreboard.setEditable(false);
+		textPaneScoreboard.setContentType("text/html");
+		scrollPaneScoreboard.setViewportView(textPaneScoreboard);
+		
+		JPanel panelPlayers = new JPanel();
+		splitPaneWaitingRoom.setRightComponent(panelPlayers);
+		panelPlayers.setBorder(new TitledBorder(null, "Players", TitledBorder.CENTER, TitledBorder.TOP, null, null));
+		panelPlayers.setLayout(new GridLayout(0, 1, 0, 0));
+		
+		JScrollPane scrollPanePlayers = new JScrollPane();
+		scrollPanePlayers.setAutoscrolls(true);
+		panelPlayers.add(scrollPanePlayers);
+		
+		textPanePlayers = new JTextPane();
+		textPanePlayers.setAutoscrolls(true);
+		scrollPanePlayers.setViewportView(textPanePlayers);
+		textPanePlayers.setEditable(false);
+		splitPaneWaitingRoom.setDividerLocation(800);
+		
+		JPanel panelButtons = new JPanel();
+		frameWaitingRoom.getContentPane().add(panelButtons, BorderLayout.SOUTH);
+		panelButtons.setLayout(new BorderLayout(0, 0));
+		
+		JPanel panelButtonsDisconnect = new JPanel();
+		panelButtons.add(panelButtonsDisconnect, BorderLayout.EAST);
+		panelButtonsDisconnect.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		
+		JButton btnDisconnect = new JButton("Disconnect");
+		btnDisconnect.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+				try {
+					pollingTask.setEnabled(false);
+					Client.getServerHandler().logout();
+					JOptionPane.showMessageDialog(null, "User logged out");
+					frameWaitingRoom.dispose();
+				}
+				catch (TimeoutException e) {
+					Client.getServerHandler().disconnect();
+					JOptionPane.showMessageDialog(null, "Can't disconnect from the server. Connection timed out.\nCheck the connection options or try again later.", "Connection Error", JOptionPane.ERROR_MESSAGE);
+				} 
+				catch (IllegalArgumentException e) {
+					JOptionPane.showMessageDialog(null, e.getMessage(), "Logout Error", JOptionPane.ERROR_MESSAGE);
+				}
+				catch (IllegalResponseException e) {
+					JOptionPane.showMessageDialog(null, "The server can't log you out: maybe you're still ingame?", "Connection Error", JOptionPane.ERROR_MESSAGE);
+				}
+				catch (InvalidTokenException e) {
+					JOptionPane.showMessageDialog(null, e.getMessage(), "Logout error", JOptionPane.ERROR_MESSAGE);
+				} catch (RemoteException e) {
+					JOptionPane.showMessageDialog(null, "Can't reach the server.\nCheck the connection options or try again later.", "Remote Error", JOptionPane.ERROR_MESSAGE);
+					e.printStackTrace();
+				}
+			}
+		});
+		btnDisconnect.setPreferredSize(new Dimension(200, 27));
+		panelButtonsDisconnect.add(btnDisconnect);
+		
+		JPanel panelDisconnectButtonSpacer = new JPanel();
+		panelButtonsDisconnect.add(panelDisconnectButtonSpacer);
+		
+		JPanel panelEnter = new JPanel();
+		panelButtons.add(panelEnter, BorderLayout.WEST);
+		panelEnter.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		
+		JPanel panelEnterButtonSpacer = new JPanel();
+		panelEnter.add(panelEnterButtonSpacer);
+		
+		JButton btnEnter = new JButton("Enter");
+		btnEnter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+								
+				try
+				{
+					/* We must call the method from outside the event dispatch thread */
+					 Thread queryThread = new Thread() {
+					      public void run() {
+					    	  
+					    	  try {
+<<<<<<< .mine
+						    		Client.getServerHandler().enterGame();
+		
+									JOptionPane.showMessageDialog(null, "Game Entered", "Game", JOptionPane.INFORMATION_MESSAGE);
+									Skeleton skeleton = new Skeleton();
+									skeleton.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+									skeleton.setVisible(true);
+									getFrameWaitingRoom().setVisible(false);
+				                    
+=======
+					    		  pollingTask.setEnabled(false);
+					    		  Client.getServerHandler().enterGame();
+					    		  JOptionPane.showMessageDialog(null, "Game Entered", "Game", JOptionPane.INFORMATION_MESSAGE);
+>>>>>>> .r125
+								} catch (TimeoutException e) {
+									JOptionPane.showMessageDialog(null, "Can't connect to the server. Connection timed out.\nCheck the connection options or try again later.", "Connection Error", JOptionPane.ERROR_MESSAGE);
+								} catch (MaxInGamePlayersExceededException e) {
+									JOptionPane.showMessageDialog(null, e.getMessage(), "Game Error", JOptionPane.ERROR_MESSAGE);
+								} catch (SpeciesNotCreatedException e) {
+									
+									/* Yes will give response = 0; No will give response = 1 */
+									int response = JOptionPane.showConfirmDialog(null, "You haven't created a species yet.\nDo you want to create a new species right now?", "Question", JOptionPane.YES_NO_OPTION);
+									
+									if (response == 0) {
+										
+										CreationSpeciesDialog creationSpeciesWindow = new CreationSpeciesDialog();
+										creationSpeciesWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+										creationSpeciesWindow.setVisible(true);
+									}
+									
+								} catch (IllegalResponseException e) {
+									JOptionPane.showMessageDialog(null, e.getMessage(), "Game Error", JOptionPane.ERROR_MESSAGE);
+								} catch (GameAccessDeniedException e) {
+									JOptionPane.showMessageDialog(null, e.getMessage(), "Game Error", JOptionPane.ERROR_MESSAGE);
+								} catch (IllegalArgumentException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (InvalidTokenException e) {
+									JOptionPane.showMessageDialog(null, e.getMessage(), "Game Error", JOptionPane.ERROR_MESSAGE);
+									e.printStackTrace();
+								} catch (RemoteException e) {
+									JOptionPane.showMessageDialog(null, "Can't reach the server.\nCheck the connection options or try again later.", "Remote Error", JOptionPane.ERROR_MESSAGE);
+									e.printStackTrace();
+								}		
+								finally {
+									pollingTask.setEnabled(true);
+								}
+				    	 
+					      }
+					    };
+					    queryThread.start();
+				}
+				catch (Exception theException)
+				{
+					theException.printStackTrace();
+				}
+			}
+		});
+	
+		btnEnter.setAlignmentX(Component.CENTER_ALIGNMENT);
+		btnEnter.setPreferredSize(new Dimension(200, 27));
+		panelEnter.add(btnEnter);
+	}
+
+}
+
+
+
+class HighscoreAndPlayerListPolling extends TimerTask {
+
+	boolean enabled = true;
+	WaitingRoomWindow window;
+	
+		
+	HighscoreAndPlayerListPolling(WaitingRoomWindow theWindow) {
+		window = theWindow;
+	}
+	
+	/**
+	 * @return the enabled
+	 */
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+
+
+	/**
+	 * @param enabled the enabled to set
+	 */
+	public void setEnabled(boolean theValue) {
+		enabled = theValue;
+	}
+
+
+
+	/* {@inheritDoc}
+	 * @see java.util.TimerTask#run()
+	 * 
+	 */
+	@Override
+	public void run() {
+		
+		if (isEnabled()) {
+
+			try
+			{
+				/* We must call the method from outside the event dispatch thread */
+				Thread queryThread = new Thread() {
+					public void run() {
+						
+						PlayersList playersList;
+						try {
+							playersList = Client.getServerHandler().playersInGameList();
+							window.updatePlayersList(playersList);
+						} catch (RemoteException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IllegalResponseException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (InvalidTokenException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (NegativeResponseException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (TimeoutException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						
+			    	 
+					}
+				};
+				queryThread.start();
+			}
+			catch (Exception theException) {
+				theException.printStackTrace();
+			}
+		}
+	}
+}

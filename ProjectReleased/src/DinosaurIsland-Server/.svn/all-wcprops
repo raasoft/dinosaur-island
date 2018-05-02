@@ -1,0 +1,51 @@
+K 26
+svn:wc:ra_dav:activity-url
+V 44
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/act/
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/299/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server
+END
+java.policy
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/196/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/java.policy
+END
+.classpath
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/215/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/.classpath
+END
+.euml2
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/74/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/.euml2
+END
+.umlproject
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/74/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/.umlproject
+END
+.project
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/19/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/.project
+END
+map.dat
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/163/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/map.dat
+END
+pom.xml
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/raasoftware/RAAXXO_IngSw_Repo/svn/!svn/ver/132/Dinosaur%20Island%20Project/trunk/DinosaurIsland-Server/pom.xml
+END

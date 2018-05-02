@@ -1,0 +1,73 @@
+/**
+ * Copyright (c) 2011 RAAXXO
+ * 
+ * This file is part of Dinosaur Island.
+ * 
+ */
+package communication;
+
+import java.io.IOException;
+import java.net.ConnectException;
+import java.rmi.RemoteException;
+import java.util.concurrent.TimeoutException;
+
+import javax.naming.AuthenticationException;
+
+<<<<<<< .mine
+import exceptions.IdentifierNotPresentException;
+=======
+>>>>>>> .r121
+import exceptions.IllegalResponseException;
+import exceptions.MaxInGamePlayersExceededException;
+import exceptions.NameAlreadyTakenException;
+import exceptions.SpeciesNotCreatedException;
+
+/**
+ * <b>Overview</b><br>
+ * <p>
+ * Description of the type.
+ * This state information includes:
+ * <ul>
+ * <li>Element 1
+ * <li>Element 2
+ * <li>The current element implementation 
+ *     (see <a href="#setXORMode">setXORMode</a>)
+ * </ul>
+ * </p>
+ *
+ * <b>Responsibilities</b><br>
+ * <p>
+ * Other description in a separate paragraph.
+ * </p>
+ *
+ * <b>Collaborators</b><br>
+ * <p>
+ * Here write about classes 
+ * </p>
+ * 
+ * @author	RAA
+ * @version 1.0
+ * @since	May 29, 2011@11:24:12 PM
+ *
+ */
+public abstract class ServerHandler implements ClientInterface {
+	
+
+	protected abstract void connect() throws IOException;
+	public abstract void disconnect();	
+	public abstract void login(String theUsername, String thePassword)  throws ConnectException, TimeoutException, IllegalResponseException, AuthenticationException, IllegalArgumentException ;
+	public abstract void register(String theUsername, String thePassword) throws ConnectException, TimeoutException, IllegalResponseException, NameAlreadyTakenException;
+	protected abstract void handleServerDisconnection(IOException theException);
+	public abstract void enterGame() throws TimeoutException, IllegalArgumentException, MaxInGamePlayersExceededException, SpeciesNotCreatedException, IdentifierNotPresentException;
+	public abstract void logout() throws TimeoutException, IllegalArgumentException, IllegalResponseException, IdentifierNotPresentException;
+	
+	/* {@inheritDoc}
+	 * @see communication.ClientInterface#callback(java.lang.String)
+	 * 
+	 */
+	@Override
+	public abstract void callback(String theString) throws RemoteException;
+
+
+
+}
